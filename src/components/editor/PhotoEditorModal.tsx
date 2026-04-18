@@ -34,6 +34,7 @@ export default function PhotoEditorModal({
 }: PhotoEditorModalProps) {
   const canvasContainerRef = useRef<HTMLDivElement | null>(null)
   const canvasRef = useRef<fabric.Canvas | null>(null)
+  const naturalDimsRef = useRef<{ w: number; h: number } | null>(null)
   const [activeColor, setActiveColor] = useState<string>('#EF4444')
   const [selectedObject, setSelectedObject] = useState<fabric.Object | null>(null)
   const [historyTrigger, setHistoryTrigger] = useState(0)
@@ -50,6 +51,7 @@ export default function PhotoEditorModal({
     // Load image to determine dimensions
     const img = new Image()
     img.onload = () => {
+      naturalDimsRef.current = { w: img.width, h: img.height }
       const imgRatio = img.width / img.height
       const containerRatio = containerWidth / containerHeight
       let canvasW: number, canvasH: number
@@ -319,7 +321,14 @@ export default function PhotoEditorModal({
     canvas.discardActiveObject()
     patchTextboxStyles(canvas)
     canvas.renderAll()
-    const dataUrl = canvas.toDataURL({ format: 'jpeg', quality: 0.92, multiplier: 1 })
+    // Match output resolution to original photo (so quality is preserved when replacing existing image)
+    let multiplier = 1
+    const dims = naturalDimsRef.current
+    const canvasW = canvas.getWidth()
+    if (dims && canvasW > 0) {
+      multiplier = Math.max(1, dims.w / canvasW)
+    }
+    const dataUrl = canvas.toDataURL({ format: 'jpeg', quality: 0.92, multiplier })
     onComplete(dataUrl)
   }, [onComplete])
 

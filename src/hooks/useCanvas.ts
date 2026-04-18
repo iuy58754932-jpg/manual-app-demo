@@ -25,11 +25,14 @@ function safeToJSON(canvas: fabric.Canvas): string {
 export function useCanvas(
   canvasElId: string,
   onModified?: (json: string) => void,
+  onSelectionChange?: (obj: fabric.Object | null) => void,
 ) {
   const canvasRef = useRef<fabric.Canvas | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const onModifiedRef = useRef(onModified)
   onModifiedRef.current = onModified
+  const onSelectionChangeRef = useRef(onSelectionChange)
+  onSelectionChangeRef.current = onSelectionChange
 
   const initCanvas = useCallback((container: HTMLDivElement) => {
     containerRef.current = container
@@ -65,6 +68,20 @@ export function useCanvas(
     canvas.on('object:modified', handleModified)
     canvas.on('object:added', handleModified)
     canvas.on('object:removed', handleModified)
+
+    // Selection event listeners
+    const handleSelectionCreated = (e: fabric.IEvent & { selected?: fabric.Object[] }) => {
+      onSelectionChangeRef.current?.(e.selected?.[0] || canvas.getActiveObject() || null)
+    }
+    const handleSelectionUpdated = (e: fabric.IEvent & { selected?: fabric.Object[] }) => {
+      onSelectionChangeRef.current?.(e.selected?.[0] || canvas.getActiveObject() || null)
+    }
+    const handleSelectionCleared = () => {
+      onSelectionChangeRef.current?.(null)
+    }
+    canvas.on('selection:created', handleSelectionCreated)
+    canvas.on('selection:updated', handleSelectionUpdated)
+    canvas.on('selection:cleared', handleSelectionCleared)
 
     canvasRef.current = canvas
     return canvas
@@ -204,6 +221,42 @@ export function useCanvas(
     return canvasRef.current?.getActiveObject() ?? null
   }, [])
 
+  const getActiveImageSrc = useCallback((): string | null => {
+    const obj = canvasRef.current?.getActiveObject()
+    if (!obj || obj.type !== 'image') return null
+    const src = (obj as fabric.Image).getSrc()
+    return src || null
+  }, [])
+
+  const replaceActiveImage = useCallback((newDataUrl: string) => {
+    const canvas = canvasRef.current
+    const oldImg = canvas?.getActiveObject() as fabric.Image | undefined
+    if (!canvas || !oldImg || oldImg.type !== 'image') return
+
+    // Preserve display geometry
+    const oldDisplayW = (oldImg.width || 1) * (oldImg.scaleX || 1)
+    const oldDisplayH = (oldImg.height || 1) * (oldImg.scaleY || 1)
+    const angle = oldImg.angle || 0
+    const left = oldImg.left || 0
+    const top = oldImg.top || 0
+    const flipX = oldImg.flipX || false
+    const flipY = oldImg.flipY || false
+
+    fabric.Image.fromURL(newDataUrl, (newImg) => {
+      const newScaleX = oldDisplayW / (newImg.width || 1)
+      const newScaleY = oldDisplayH / (newImg.height || 1)
+      newImg.set({
+        left, top, angle, flipX, flipY,
+        scaleX: newScaleX,
+        scaleY: newScaleY,
+      })
+      canvas.remove(oldImg)
+      canvas.add(newImg)
+      canvas.setActiveObject(newImg)
+      canvas.renderAll()
+    })
+  }, [])
+
   const zoomIn = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -256,6 +309,8 @@ export function useCanvas(
     sendBackward,
     duplicateSelected,
     getActiveObject,
+    getActiveImageSrc,
+    replaceActiveImage,
     zoomIn,
     zoomOut,
     resetZoom,

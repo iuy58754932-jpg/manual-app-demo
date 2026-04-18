@@ -33,6 +33,8 @@ export default function EditorPage() {
   const [pdfGenerating, setPdfGenerating] = useState(false)
   const [photoEditorOpen, setPhotoEditorOpen] = useState(false)
   const [pendingPhotoDataUrl, setPendingPhotoDataUrl] = useState<string | null>(null)
+  const [editingExistingImage, setEditingExistingImage] = useState(false)
+  const [selectedObjectType, setSelectedObjectType] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const editPhotoInputRef = useRef<HTMLInputElement>(null)
@@ -44,12 +46,17 @@ export default function EditorPage() {
     pushState(json)
   }, [pushState])
 
+  const handleSelectionChange = useCallback((obj: { type?: string } | null) => {
+    setSelectedObjectType(obj?.type ?? null)
+  }, [])
+
   const {
     initCanvas, loadFromJSON, toJSON, toThumbnail,
     addImage, addText, deleteSelected,
     bringForward, sendBackward, duplicateSelected,
+    getActiveImageSrc, replaceActiveImage,
     zoomIn, zoomOut,
-  } = useCanvas('editor-canvas', onModified)
+  } = useCanvas('editor-canvas', onModified, handleSelectionChange)
 
   // Save current page state back to manual
   const saveCurrentPageState = useCallback(() => {
@@ -202,16 +209,34 @@ export default function EditorPage() {
     e.target.value = ''
   }, [])
 
+  const handleEditSelectedImage = useCallback(() => {
+    const src = getActiveImageSrc()
+    if (!src) {
+      showToast('編集する画像を選択してください')
+      return
+    }
+    setPendingPhotoDataUrl(src)
+    setEditingExistingImage(true)
+    setPhotoEditorOpen(true)
+  }, [getActiveImageSrc])
+
   const handlePhotoEditorComplete = useCallback((flattenedDataUrl: string) => {
-    addImage(flattenedDataUrl)
+    if (editingExistingImage) {
+      replaceActiveImage(flattenedDataUrl)
+      showToast('画像を更新しました')
+    } else {
+      addImage(flattenedDataUrl)
+      showToast('編集した写真を追加しました')
+    }
     setPhotoEditorOpen(false)
     setPendingPhotoDataUrl(null)
-    showToast('編集した写真を追加しました')
-  }, [addImage])
+    setEditingExistingImage(false)
+  }, [editingExistingImage, addImage, replaceActiveImage])
 
   const handlePhotoEditorCancel = useCallback(() => {
     setPhotoEditorOpen(false)
     setPendingPhotoDataUrl(null)
+    setEditingExistingImage(false)
   }, [])
 
   const handleUndo = useCallback(() => {
@@ -323,6 +348,8 @@ export default function EditorPage() {
       <Toolbar
         onAddPhoto={handleAddPhoto}
         onAddEditedPhoto={handleAddEditedPhoto}
+        onEditSelectedImage={handleEditSelectedImage}
+        imageSelected={selectedObjectType === 'image'}
         onAddText={() => addText()}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
