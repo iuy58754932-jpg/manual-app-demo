@@ -6,6 +6,7 @@ import PageNavigator from '../components/editor/PageNavigator'
 import ObjectMenu from '../components/editor/ObjectMenu'
 import PhotoEditorModal from '../components/editor/PhotoEditorModal'
 import QrCodeModal from '../components/editor/QrCodeModal'
+import VoiceInputModal from '../components/editor/VoiceInputModal'
 import DrawingControls from '../components/editor/DrawingControls'
 import Modal from '../components/common/Modal'
 import { showToast } from '../components/common/Toast'
@@ -38,6 +39,7 @@ export default function EditorPage() {
   const [editingExistingImage, setEditingExistingImage] = useState(false)
   const [selectedObjectType, setSelectedObjectType] = useState<string | null>(null)
   const [qrModalOpen, setQrModalOpen] = useState(false)
+  const [voiceModalOpen, setVoiceModalOpen] = useState(false)
   const [drawingMode, setDrawingMode] = useState(false)
   const [brushColor, setBrushColor] = useState('#EF4444')
   const [brushWidth, setBrushWidth] = useState(4)
@@ -234,6 +236,14 @@ export default function EditorPage() {
     setQrModalOpen(false)
   }, [addImage])
 
+  // ── Voice Input ──
+  const handleAddVoiceText = useCallback(() => { setVoiceModalOpen(true) }, [])
+  const handleVoiceSubmit = useCallback((text: string) => {
+    addText(text)
+    setVoiceModalOpen(false)
+    showToast('音声テキストを追加しました')
+  }, [addText])
+
   // ── Drawing Mode ──
   const handleToggleDraw = useCallback(() => {
     setDrawingMode((prev) => {
@@ -388,6 +398,7 @@ export default function EditorPage() {
         onAddEditedPhoto={handleAddEditedPhoto}
         onEditSelectedImage={handleEditSelectedImage}
         onAddQr={handleAddQr}
+        onAddVoiceText={handleAddVoiceText}
         onToggleDraw={handleToggleDraw}
         imageSelected={selectedObjectType === 'image'}
         drawingMode={drawingMode}
@@ -452,6 +463,13 @@ export default function EditorPage() {
         open={qrModalOpen}
         onClose={() => setQrModalOpen(false)}
         onAdd={handleQrAdd}
+      />
+
+      {/* Voice Input Modal */}
+      <VoiceInputModal
+        open={voiceModalOpen}
+        onClose={() => setVoiceModalOpen(false)}
+        onSubmit={handleVoiceSubmit}
       />
 
       <Modal open={pdfModalOpen} onClose={() => setPdfModalOpen(false)} title="PDF出力">

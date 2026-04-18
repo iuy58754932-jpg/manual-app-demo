@@ -3,6 +3,7 @@ interface ToolbarProps {
   onAddEditedPhoto: () => void
   onEditSelectedImage: () => void
   onAddText: () => void
+  onAddVoiceText: () => void
   onAddQr: () => void
   onToggleDraw: () => void
   onZoomIn: () => void
@@ -17,7 +18,7 @@ interface ToolbarProps {
 }
 
 export default function Toolbar({
-  onAddPhoto, onAddEditedPhoto, onEditSelectedImage, onAddText, onAddQr, onToggleDraw,
+  onAddPhoto, onAddEditedPhoto, onEditSelectedImage, onAddText, onAddVoiceText, onAddQr, onToggleDraw,
   onZoomIn, onZoomOut, onUndo, onRedo, onDelete,
   canUndo, canRedo, imageSelected, drawingMode,
 }: ToolbarProps) {
@@ -45,6 +46,9 @@ export default function Toolbar({
         </button>
         <button className={btnClass} onClick={onAddText} title="テキストを追加" aria-label="テキストを追加">
           <span className="text-[14px] font-bold">Aa</span>
+        </button>
+        <button className={btnClass} onClick={onAddVoiceText} title="音声入力でテキスト追加" aria-label="音声入力でテキスト追加">
+          🎤
         </button>
         <button className={btnClass} onClick={onAddQr} title="QRコードを追加" aria-label="QRコードを追加">
           <span className="text-[14px]">🔳</span>
