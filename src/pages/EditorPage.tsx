@@ -4,6 +4,7 @@ import Toolbar from '../components/editor/Toolbar'
 import CanvasComponent from '../components/editor/Canvas'
 import PageNavigator from '../components/editor/PageNavigator'
 import ObjectMenu from '../components/editor/ObjectMenu'
+import PhotoEditorModal from '../components/editor/PhotoEditorModal'
 import Modal from '../components/common/Modal'
 import { showToast } from '../components/common/Toast'
 import { useCanvas } from '../hooks/useCanvas'
@@ -30,8 +31,11 @@ export default function EditorPage() {
   const [pdfModalOpen, setPdfModalOpen] = useState(false)
   const [pdfPaperSize, setPdfPaperSize] = useState<PaperSize>('A4')
   const [pdfGenerating, setPdfGenerating] = useState(false)
+  const [photoEditorOpen, setPhotoEditorOpen] = useState(false)
+  const [pendingPhotoDataUrl, setPendingPhotoDataUrl] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const editPhotoInputRef = useRef<HTMLInputElement>(null)
   const isInitialized = useRef(false)
 
   const { pushState, undo, redo, canUndo, canRedo, clear: clearHistory, isProgrammatic } = useHistory()
@@ -181,6 +185,35 @@ export default function EditorPage() {
     e.target.value = ''
   }, [addImage])
 
+  const handleAddEditedPhoto = useCallback(() => {
+    editPhotoInputRef.current?.click()
+  }, [])
+
+  const handleEditPhotoFileSelected = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const dataUrl = await resizeImage(file)
+      setPendingPhotoDataUrl(dataUrl)
+      setPhotoEditorOpen(true)
+    } catch {
+      showToast('画像の読み込みに失敗しました')
+    }
+    e.target.value = ''
+  }, [])
+
+  const handlePhotoEditorComplete = useCallback((flattenedDataUrl: string) => {
+    addImage(flattenedDataUrl)
+    setPhotoEditorOpen(false)
+    setPendingPhotoDataUrl(null)
+    showToast('編集した写真を追加しました')
+  }, [addImage])
+
+  const handlePhotoEditorCancel = useCallback(() => {
+    setPhotoEditorOpen(false)
+    setPendingPhotoDataUrl(null)
+  }, [])
+
   const handleUndo = useCallback(() => {
     const currentJson = toJSON()
     const prevJson = undo(currentJson)
@@ -245,7 +278,7 @@ export default function EditorPage() {
 
   return (
     <div className="flex flex-col h-[calc(100dvh-60px)]">
-      {/* Hidden file input */}
+      {/* Hidden file inputs */}
       <input
         ref={fileInputRef}
         type="file"
@@ -253,6 +286,14 @@ export default function EditorPage() {
         capture="environment"
         className="hidden"
         onChange={handleFileSelected}
+      />
+      <input
+        ref={editPhotoInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleEditPhotoFileSelected}
       />
 
       {/* Title input + Save */}
@@ -281,6 +322,7 @@ export default function EditorPage() {
       {/* Toolbar */}
       <Toolbar
         onAddPhoto={handleAddPhoto}
+        onAddEditedPhoto={handleAddEditedPhoto}
         onAddText={() => addText()}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
@@ -318,6 +360,14 @@ export default function EditorPage() {
       />
 
       {/* PDF Modal */}
+      {/* Photo Editor Modal (Instagram-style) */}
+      <PhotoEditorModal
+        open={photoEditorOpen}
+        photoDataUrl={pendingPhotoDataUrl}
+        onComplete={handlePhotoEditorComplete}
+        onCancel={handlePhotoEditorCancel}
+      />
+
       <Modal open={pdfModalOpen} onClose={() => setPdfModalOpen(false)} title="PDF出力">
         <div className="space-y-4">
           {/* Paper size */}

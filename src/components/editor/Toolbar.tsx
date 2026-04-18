@@ -1,5 +1,6 @@
 interface ToolbarProps {
   onAddPhoto: () => void
+  onAddEditedPhoto: () => void
   onAddText: () => void
   onZoomIn: () => void
   onZoomOut: () => void
@@ -11,7 +12,7 @@ interface ToolbarProps {
 }
 
 export default function Toolbar({
-  onAddPhoto, onAddText, onZoomIn, onZoomOut,
+  onAddPhoto, onAddEditedPhoto, onAddText, onZoomIn, onZoomOut,
   onUndo, onRedo, onDelete, canUndo, canRedo,
 }: ToolbarProps) {
   const btnClass = "bg-white border-[1.5px] border-border rounded-[10px] px-3 py-2 text-[13px] cursor-pointer flex items-center gap-1.5 transition-all hover:border-accent hover:text-accent hover:bg-sky tap-feedback text-text-secondary font-[inherit] disabled:opacity-30 disabled:cursor-default"
@@ -20,6 +21,9 @@ export default function Toolbar({
     <div className="flex gap-1.5 px-4 py-2.5 border-b border-border overflow-x-auto scrollbar-hide bg-white">
       <button className={btnClass} onClick={onAddPhoto}>
         <span className="text-[16px]">📷</span> 写真
+      </button>
+      <button className={btnClass} onClick={onAddEditedPhoto}>
+        <span className="text-[16px]">📸</span><span className="text-[12px]">✏️</span> 編集して追加
       </button>
       <button className={btnClass} onClick={onAddText}>
         <span className="text-[16px]">Aa</span> テキスト
