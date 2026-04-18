@@ -5,6 +5,8 @@ import CanvasComponent from '../components/editor/Canvas'
 import PageNavigator from '../components/editor/PageNavigator'
 import ObjectMenu from '../components/editor/ObjectMenu'
 import PhotoEditorModal from '../components/editor/PhotoEditorModal'
+import QrCodeModal from '../components/editor/QrCodeModal'
+import DrawingControls from '../components/editor/DrawingControls'
 import Modal from '../components/common/Modal'
 import { showToast } from '../components/common/Toast'
 import { useCanvas } from '../hooks/useCanvas'
@@ -35,6 +37,10 @@ export default function EditorPage() {
   const [pendingPhotoDataUrl, setPendingPhotoDataUrl] = useState<string | null>(null)
   const [editingExistingImage, setEditingExistingImage] = useState(false)
   const [selectedObjectType, setSelectedObjectType] = useState<string | null>(null)
+  const [qrModalOpen, setQrModalOpen] = useState(false)
+  const [drawingMode, setDrawingMode] = useState(false)
+  const [brushColor, setBrushColor] = useState('#EF4444')
+  const [brushWidth, setBrushWidth] = useState(4)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const editPhotoInputRef = useRef<HTMLInputElement>(null)
@@ -55,6 +61,7 @@ export default function EditorPage() {
     addImage, addText, deleteSelected,
     bringForward, sendBackward, duplicateSelected,
     getActiveImageSrc, replaceActiveImage,
+    setDrawingMode: setCanvasDrawingMode,
     zoomIn, zoomOut,
   } = useCanvas('editor-canvas', onModified, handleSelectionChange)
 
@@ -220,6 +227,37 @@ export default function EditorPage() {
     setPhotoEditorOpen(true)
   }, [getActiveImageSrc])
 
+  // ── QR Code ──
+  const handleAddQr = useCallback(() => { setQrModalOpen(true) }, [])
+  const handleQrAdd = useCallback((dataUrl: string) => {
+    addImage(dataUrl)
+    setQrModalOpen(false)
+  }, [addImage])
+
+  // ── Drawing Mode ──
+  const handleToggleDraw = useCallback(() => {
+    setDrawingMode((prev) => {
+      const next = !prev
+      setCanvasDrawingMode(next, brushColor, brushWidth)
+      return next
+    })
+  }, [setCanvasDrawingMode, brushColor, brushWidth])
+
+  const handleDrawColorChange = useCallback((c: string) => {
+    setBrushColor(c)
+    setCanvasDrawingMode(true, c, brushWidth)
+  }, [setCanvasDrawingMode, brushWidth])
+
+  const handleBrushWidthChange = useCallback((w: number) => {
+    setBrushWidth(w)
+    setCanvasDrawingMode(true, brushColor, w)
+  }, [setCanvasDrawingMode, brushColor])
+
+  const handleExitDraw = useCallback(() => {
+    setDrawingMode(false)
+    setCanvasDrawingMode(false)
+  }, [setCanvasDrawingMode])
+
   const handlePhotoEditorComplete = useCallback((flattenedDataUrl: string) => {
     if (editingExistingImage) {
       replaceActiveImage(flattenedDataUrl)
@@ -349,7 +387,10 @@ export default function EditorPage() {
         onAddPhoto={handleAddPhoto}
         onAddEditedPhoto={handleAddEditedPhoto}
         onEditSelectedImage={handleEditSelectedImage}
+        onAddQr={handleAddQr}
+        onToggleDraw={handleToggleDraw}
         imageSelected={selectedObjectType === 'image'}
+        drawingMode={drawingMode}
         onAddText={() => addText()}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
@@ -359,6 +400,17 @@ export default function EditorPage() {
         canUndo={canUndo}
         canRedo={canRedo}
       />
+
+      {/* Drawing controls (visible only when drawing mode is active) */}
+      {drawingMode && (
+        <DrawingControls
+          color={brushColor}
+          onColorChange={handleDrawColorChange}
+          brushWidth={brushWidth}
+          onBrushWidthChange={handleBrushWidthChange}
+          onDone={handleExitDraw}
+        />
+      )}
 
       {/* Canvas area */}
       <div className="relative flex-1 overflow-hidden">
@@ -393,6 +445,13 @@ export default function EditorPage() {
         photoDataUrl={pendingPhotoDataUrl}
         onComplete={handlePhotoEditorComplete}
         onCancel={handlePhotoEditorCancel}
+      />
+
+      {/* QR Code Modal */}
+      <QrCodeModal
+        open={qrModalOpen}
+        onClose={() => setQrModalOpen(false)}
+        onAdd={handleQrAdd}
       />
 
       <Modal open={pdfModalOpen} onClose={() => setPdfModalOpen(false)} title="PDF出力">

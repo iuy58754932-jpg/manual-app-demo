@@ -1,16 +1,22 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDatabase } from '../hooks/useDatabase'
 import { showToast } from '../components/common/Toast'
+import { exportManualAsJson, parseManualJsonFile } from '../lib/manualIO'
 
 type SortKey = 'updatedAt' | 'createdAt' | 'title'
 
+function generateId(): string {
+  return crypto.randomUUID?.() ?? Date.now().toString(36) + Math.random().toString(36).slice(2)
+}
+
 export default function FilesPage() {
   const navigate = useNavigate()
-  const { manuals, loading, deleteManual, duplicateManual } = useDatabase()
+  const { manuals, loading, deleteManual, duplicateManual, loadManual, saveManual } = useDatabase()
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('updatedAt')
-  const [contextMenu, setContextMenu] = useState<{ id: string; x: number; y: number } | null>(null)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const importInputRef = useRef<HTMLInputElement>(null)
 
   const filtered = useMemo(() => {
     let list = [...manuals]
@@ -26,39 +32,93 @@ export default function FilesPage() {
     return list
   }, [manuals, search, sortKey])
 
-  const handleContextMenu = (e: React.MouseEvent | React.TouchEvent, id: string) => {
-    e.preventDefault()
-    const x = 'clientX' in e ? e.clientX : e.touches[0].clientX
-    const y = 'clientY' in e ? e.clientY : e.touches[0].clientY
-    setContextMenu({ id, x: Math.min(x, 300), y })
-  }
-
   const handleDelete = async (id: string) => {
+    setOpenMenuId(null)
     if (confirm('このマニュアルを削除しますか？')) {
       await deleteManual(id)
       showToast('削除しました')
     }
-    setContextMenu(null)
   }
 
   const handleDuplicate = async (id: string) => {
+    setOpenMenuId(null)
     await duplicateManual(id)
     showToast('複製しました')
-    setContextMenu(null)
   }
 
+  const handleExport = async (id: string) => {
+    setOpenMenuId(null)
+    const manual = await loadManual(id)
+    if (!manual) {
+      showToast('マニュアルが見つかりません')
+      return
+    }
+    try {
+      exportManualAsJson(manual)
+      showToast('エクスポートしました')
+    } catch {
+      showToast('エクスポートに失敗しました')
+    }
+  }
+
+  const handleImportClick = useCallback(() => {
+    importInputRef.current?.click()
+  }, [])
+
+  const handleImportFileSelected = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const parsed = await parseManualJsonFile(file)
+      const now = new Date()
+      await saveManual({
+        id: generateId(),
+        title: parsed.title + ' (インポート)',
+        industry: parsed.industry,
+        templateId: parsed.templateId,
+        pages: parsed.pages,
+        thumbnailDataUrl: parsed.thumbnailDataUrl,
+        createdAt: now,
+        updatedAt: now,
+      })
+      showToast('インポートしました')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'インポートに失敗しました'
+      showToast(msg)
+    }
+    e.target.value = ''
+  }, [saveManual])
+
   return (
-    <div className="p-5" onClick={() => setContextMenu(null)}>
-      {/* Search */}
-      <div className="relative mb-4">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="タイトルで検索..."
-          className="w-full px-4 py-3 pl-10 bg-white border-[1.5px] border-border rounded-xl text-[14px] outline-none focus:border-accent transition-colors font-[inherit]"
-        />
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">🔍</span>
+    <div className="p-5" onClick={() => setOpenMenuId(null)}>
+      {/* Hidden import input */}
+      <input
+        ref={importInputRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        onChange={handleImportFileSelected}
+      />
+
+      {/* Search + Import */}
+      <div className="flex gap-2 mb-4">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="タイトルで検索..."
+            className="w-full px-4 py-3 pl-10 bg-white border-[1.5px] border-border rounded-xl text-[14px] outline-none focus:border-accent transition-colors font-[inherit]"
+          />
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">🔍</span>
+        </div>
+        <button
+          onClick={handleImportClick}
+          title="JSONファイルをインポート"
+          className="bg-white border-[1.5px] border-border rounded-xl px-3 text-[13px] font-bold text-primary cursor-pointer tap-feedback hover:border-accent flex items-center gap-1 shrink-0"
+        >
+          📥<span className="hidden sm:inline">読込</span>
+        </button>
       </div>
 
       {/* Sort */}
@@ -89,55 +149,76 @@ export default function FilesPage() {
         <div className="text-center py-12 text-text-muted">
           <p className="text-4xl mb-3">📭</p>
           <p className="text-[14px]">{search ? '検索結果がありません' : '保存されたファイルがありません'}</p>
+          {!search && (
+            <p className="text-[11px] mt-2">「📥 読込」からJSONファイルを取り込むこともできます</p>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-2">
           {filtered.map((m) => {
             const pages = JSON.parse(m.pages)
             return (
-              <button
+              <div
                 key={m.id}
-                onClick={() => navigate(`/editor/${m.id}`)}
-                onContextMenu={(e) => handleContextMenu(e, m.id)}
-                className="flex items-center gap-3 p-3 bg-white rounded-xl border border-border shadow-[0_2px_12px_rgba(30,39,97,0.08)] hover:border-accent hover:shadow-[0_8px_32px_rgba(30,39,97,0.12)] transition-all cursor-pointer tap-feedback text-left w-full"
+                className="flex items-center gap-3 p-3 bg-white rounded-xl border border-border shadow-[0_2px_12px_rgba(30,39,97,0.08)] hover:border-accent hover:shadow-[0_8px_32px_rgba(30,39,97,0.12)] transition-all relative"
               >
-                {m.thumbnailDataUrl ? (
-                  <img src={m.thumbnailDataUrl} alt="" className="w-14 h-18 rounded-lg object-cover bg-bg" />
-                ) : (
-                  <div className="w-14 h-18 rounded-lg bg-bg flex items-center justify-center text-text-muted text-2xl">📄</div>
+                <button
+                  onClick={() => navigate(`/editor/${m.id}`)}
+                  className="flex items-center gap-3 flex-1 bg-transparent border-none cursor-pointer tap-feedback text-left min-w-0 py-1"
+                >
+                  {m.thumbnailDataUrl ? (
+                    <img src={m.thumbnailDataUrl} alt="" className="w-14 h-18 rounded-lg object-cover bg-bg" />
+                  ) : (
+                    <div className="w-14 h-18 rounded-lg bg-bg flex items-center justify-center text-text-muted text-2xl">📄</div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-bold text-text-primary truncate">{m.title || '無題のマニュアル'}</p>
+                    <p className="text-[11px] text-text-muted mt-1">
+                      {new Date(m.updatedAt).toLocaleDateString('ja-JP')} · {pages.length}ページ
+                    </p>
+                  </div>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setOpenMenuId((prev) => (prev === m.id ? null : m.id))
+                  }}
+                  title="メニュー"
+                  aria-label="操作メニュー"
+                  className="shrink-0 w-9 h-9 rounded-lg bg-white border border-border hover:border-accent text-text-muted hover:text-accent flex items-center justify-center cursor-pointer text-[16px] tap-feedback"
+                >
+                  ⋯
+                </button>
+
+                {/* Dropdown menu */}
+                {openMenuId === m.id && (
+                  <div
+                    className="absolute top-14 right-3 z-40 bg-white rounded-xl shadow-[0_8px_32px_rgba(30,39,97,0.18)] border border-border overflow-hidden min-w-[160px]"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      onClick={() => handleDuplicate(m.id)}
+                      className="block w-full text-left px-4 py-3 text-[13px] text-text-secondary hover:bg-sky hover:text-primary cursor-pointer border-none bg-transparent font-[inherit]"
+                    >
+                      📋 複製
+                    </button>
+                    <button
+                      onClick={() => handleExport(m.id)}
+                      className="block w-full text-left px-4 py-3 text-[13px] text-text-secondary hover:bg-sky hover:text-primary cursor-pointer border-none bg-transparent font-[inherit]"
+                    >
+                      📤 エクスポート(JSON)
+                    </button>
+                    <button
+                      onClick={() => handleDelete(m.id)}
+                      className="block w-full text-left px-4 py-3 text-[13px] text-error hover:bg-red-50 cursor-pointer border-none bg-transparent font-[inherit] border-t border-border"
+                    >
+                      🗑 削除
+                    </button>
+                  </div>
                 )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-bold text-text-primary truncate">{m.title || '無題のマニュアル'}</p>
-                  <p className="text-[11px] text-text-muted mt-1">
-                    {new Date(m.updatedAt).toLocaleDateString('ja-JP')} · {pages.length}ページ
-                  </p>
-                </div>
-                <span className="text-text-muted text-lg">›</span>
-              </button>
+              </div>
             )
           })}
-        </div>
-      )}
-
-      {/* Context menu */}
-      {contextMenu && (
-        <div
-          className="fixed z-50 bg-white rounded-xl shadow-[0_8px_32px_rgba(30,39,97,0.12)] border border-border overflow-hidden min-w-[140px]"
-          style={{ left: contextMenu.x, top: contextMenu.y }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            onClick={() => handleDuplicate(contextMenu.id)}
-            className="block w-full text-left px-4 py-3 text-[13px] text-text-secondary hover:bg-sky hover:text-primary cursor-pointer border-none bg-transparent font-[inherit]"
-          >
-            📋 複製
-          </button>
-          <button
-            onClick={() => handleDelete(contextMenu.id)}
-            className="block w-full text-left px-4 py-3 text-[13px] text-error hover:bg-red-50 cursor-pointer border-none bg-transparent font-[inherit]"
-          >
-            🗑 削除
-          </button>
         </div>
       )}
     </div>

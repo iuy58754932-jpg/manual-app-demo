@@ -277,6 +277,21 @@ export function useCanvas(
     canvas.renderAll()
   }, [])
 
+  const setDrawingMode = useCallback((enabled: boolean, color = '#EF4444', width = 4) => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    canvas.isDrawingMode = enabled
+    if (enabled) {
+      if (!canvas.freeDrawingBrush) {
+        canvas.freeDrawingBrush = new fabric.PencilBrush(canvas)
+      }
+      // Account for zoom so brush width matches on-screen size
+      const zoom = canvas.getZoom() || 1
+      canvas.freeDrawingBrush.color = color
+      canvas.freeDrawingBrush.width = width / zoom
+    }
+  }, [])
+
   const resetZoom = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas || !containerRef.current) return
@@ -311,6 +326,7 @@ export function useCanvas(
     getActiveObject,
     getActiveImageSrc,
     replaceActiveImage,
+    setDrawingMode,
     zoomIn,
     zoomOut,
     resetZoom,
