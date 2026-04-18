@@ -1,0 +1,25 @@
+{
+  "name": "マニュアル作成アプリ",
+  "short_name": "マニュアル",
+  "description": "テンプレートベースの業務マニュアル作成アプリ",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1E2761",
+  "theme_color": "#065A82",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

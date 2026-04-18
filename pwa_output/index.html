@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>マニュアル作成アプリ</title>
+
+<!-- ===== PWA設定 ===== -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#065A82">
+<meta name="mobile-web-app-capable" content="yes">
+
+<!-- iOS用 ホーム画面アイコン設定 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="マニュアル">
+<link rel="apple-touch-icon" href="icon-192x192.png">
+
+<!-- アイコン -->
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192x192.png">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1E2761;
+    --blue: #065A82;
+    --teal: #0891B2;
+    --ice: #CADCFC;
+    --sky: #E8F4FD;
+    --off-white: #F6F8FB;
+    --white: #FFFFFF;
+    --dark: #1A1F36;
+    --body: #3A4560;
+    --mid: #8896A7;
+    --light-border: #E2E8F0;
+    --green: #10B981;
+    --red: #EF4444;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(30,39,97,0.08);
+    --shadow-lg: 0 8px 32px rgba(30,39,97,0.12);
+    /* iOS safe area */
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--off-white);
+    color: var(--dark);
+    min-height: 100vh;
+    min-height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== Header ===== */
+  .app-header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+    color: white;
+    padding: 16px 20px;
+    padding-top: calc(16px + var(--sat));
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(6,90,130,0.3);
+  }
+  .app-header .back-btn {
+    background: rgba(255,255,255,0.15);
+    border: none; color: white;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    font-size: 18px; cursor: pointer;
+    display: none;
+    align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  .app-header .back-btn:hover { background: rgba(255,255,255,0.25); }
+  .app-header .back-btn.visible { display: flex; }
+  .app-header h1 { font-size: 17px; font-weight: 700; letter-spacing: 0.5px; }
+
+  /* ===== Screens ===== */
+  .screen { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== Home Screen ===== */
+  .home-hero { text-align: center; padding: 40px 20px 30px; }
+  .home-logo {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    border-radius: 24px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 36px; color: white; font-weight: 900;
+    box-shadow: 0 8px 24px rgba(8,145,178,0.3);
+  }
+  .home-hero h2 { font-size: 22px; font-weight: 900; margin-bottom: 8px; color: var(--navy); }
+  .home-hero p { font-size: 13px; color: var(--mid); line-height: 1.6; }
+
+  .home-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+  .btn-primary, .btn-secondary {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 16px 24px;
+    border-radius: var(--radius);
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; border: none;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: white;
+    box-shadow: 0 4px 16px rgba(8,145,178,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(8,145,178,0.4); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-secondary {
+    background: var(--white); color: var(--blue);
+    border: 2px solid var(--light-border);
+  }
+  .btn-secondary:hover { border-color: var(--teal); background: var(--sky); }
+  .btn-icon { font-size: 20px; }
+
+  /* ===== Install banner ===== */
+  .install-banner {
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+    color: white;
+    padding: 12px 20px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .install-banner.show { display: flex; }
+  .install-banner .install-text { flex: 1; font-weight: 500; }
+  .install-banner .install-btn {
+    background: white; color: #D97706;
+    border: none; border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+  }
+  .install-banner .dismiss-btn {
+    background: none; border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 18px; cursor: pointer;
+  }
+
+  /* ===== Template Selection ===== */
+  .section-label {
+    font-size: 13px; font-weight: 700; color: var(--mid);
+    text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 14px;
+  }
+  .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .template-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px 16px; text-align: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    box-shadow: var(--shadow);
+  }
+  .template-card:hover { border-color: var(--teal); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .template-card:active { transform: scale(0.97); }
+  .template-card.selected { border-color: var(--teal); background: var(--sky); }
+  .template-card .card-emoji { font-size: 36px; margin-bottom: 10px; display: block; }
+  .template-card .card-title { font-size: 14px; font-weight: 700; color: var(--dark); }
+  .template-card .card-desc { font-size: 11px; color: var(--mid); margin-top: 4px; }
+
+  /* ===== Editor ===== */
+  .editor-toolbar {
+    display: flex; gap: 6px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--light-border);
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .tool-btn {
+    background: var(--white);
+    border: 1.5px solid var(--light-border);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: all 0.15s;
+    font-family: inherit; color: var(--body);
+  }
+  .tool-btn:hover { border-color: var(--teal); color: var(--teal); background: var(--sky); }
+  .tool-btn .tool-icon { font-size: 16px; }
+
+  .manual-title-input {
+    width: 100%;
+    font-size: 20px; font-weight: 900;
+    border: none; outline: none;
+    padding: 8px 0; color: var(--navy);
+    background: transparent; font-family: inherit;
+    border-bottom: 2px solid var(--light-border);
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .manual-title-input:focus { border-bottom-color: var(--teal); }
+
+  .step-container { display: flex; flex-direction: column; gap: 16px; }
+  .step-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--light-border);
+  }
+  .step-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--off-white);
+    border-bottom: 1px solid var(--light-border);
+  }
+  .step-number {
+    background: var(--blue); color: white;
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+  }
+  .step-title-input {
+    flex: 1; margin-left: 10px;
+    border: none; outline: none;
+    font-size: 14px; font-weight: 700;
+    background: transparent; font-family: inherit;
+    color: var(--dark);
+  }
+  .step-delete {
+    background: none; border: none;
+    color: var(--mid); cursor: pointer;
+    font-size: 18px; padding: 4px;
+    border-radius: 6px; transition: all 0.15s;
+  }
+  .step-delete:hover { color: var(--red); background: #FEF2F2; }
+
+  .step-body { padding: 16px; }
+
+  .photo-area {
+    width: 100%; min-height: 160px;
+    background: var(--off-white);
+    border: 2px dashed var(--light-border);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 8px;
+    cursor: pointer; margin-bottom: 12px;
+    transition: all 0.2s; overflow: hidden;
+    position: relative;
+  }
+  .photo-area:hover { border-color: var(--teal); background: var(--sky); }
+  .photo-area.has-image { border-style: solid; border-color: var(--light-border); min-height: auto; }
+  .photo-area img { width: 100%; display: block; border-radius: 8px; }
+  .photo-area .photo-placeholder { text-align: center; }
+  .photo-area .photo-placeholder .ph-icon { font-size: 32px; color: var(--mid); }
+  .photo-area .photo-placeholder p { font-size: 12px; color: var(--mid); margin-top: 4px; }
+  .photo-remove {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(0,0,0,0.6); color: white;
+    border: none; border-radius: 8px;
+    width: 30px; height: 30px;
+    cursor: pointer; font-size: 16px;
+    display: none;
+  }
+  .photo-area.has-image .photo-remove { display: flex; align-items: center; justify-content: center; }
+
+  .step-text {
+    width: 100%; min-height: 80px;
+    border: 1.5px solid var(--light-border);
+    border-radius: 10px;
+    padding: 12px; font-size: 14px;
+    font-family: inherit; color: var(--body);
+    resize: vertical; outline: none;
+    transition: border-color 0.2s; line-height: 1.7;
+  }
+  .step-text:focus { border-color: var(--teal); }
+
+  .add-step-btn {
+    width: 100%; padding: 14px;
+    border: 2px dashed var(--light-border);
+    border-radius: var(--radius);
+    background: transparent; color: var(--teal);
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .add-step-btn:hover { border-color: var(--teal); background: var(--sky); }
+
+  /* ===== Bottom Actions ===== */
+  .bottom-bar {
+    position: sticky; bottom: 0;
+    background: var(--white);
+    padding: 12px 20px;
+    padding-bottom: calc(12px + var(--sab));
+    border-top: 1px solid var(--light-border);
+    display: flex; gap: 10px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+  }
+  .bottom-bar button { flex: 1; }
+  .btn-sm {
+    padding: 12px 16px; border-radius: 10px;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; border: none; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all 0.2s;
+  }
+  .btn-sm:active { transform: scale(0.96); }
+  .btn-teal { background: var(--teal); color: white; }
+  .btn-teal:hover { background: #0E7490; }
+  .btn-navy { background: var(--navy); color: white; }
+  .btn-navy:hover { background: #161D4A; }
+  .btn-outline { background: var(--white); color: var(--body); border: 1.5px solid var(--light-border); }
+  .btn-outline:hover { border-color: var(--teal); color: var(--teal); }
+
+  /* ===== Modal ===== */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(26,31,54,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-content {
+    background: white; border-radius: 16px;
+    width: 100%; max-width: 440px;
+    max-height: 80vh; overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    animation: modalIn 0.3s ease;
+  }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--light-border);
+  }
+  .modal-header h3 { font-size: 16px; font-weight: 700; }
+  .modal-close { background: none; border: none; font-size: 22px; color: var(--mid); cursor: pointer; }
+  .modal-body { padding: 20px; }
+
+  /* ===== PDF Render (offscreen) ===== */
+  #pdf-render {
+    position: absolute; left: -9999px; top: 0;
+    width: 595px; background: white;
+    font-family: 'Noto Sans JP', sans-serif;
+    padding: 40px;
+  }
+  #pdf-render .pdf-title {
+    font-size: 24px; font-weight: 900;
+    color: var(--navy);
+    border-bottom: 3px solid var(--teal);
+    padding-bottom: 12px; margin-bottom: 24px;
+  }
+  #pdf-render .pdf-meta { font-size: 11px; color: var(--mid); margin-bottom: 20px; }
+  #pdf-render .pdf-step { margin-bottom: 24px; page-break-inside: avoid; }
+  #pdf-render .pdf-step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  #pdf-render .pdf-step-num {
+    background: var(--blue); color: white;
+    width: 26px; height: 26px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  #pdf-render .pdf-step-title { font-size: 16px; font-weight: 700; color: var(--dark); }
+  #pdf-render .pdf-step-img { width: 100%; border-radius: 6px; margin-bottom: 8px; border: 1px solid var(--light-border); }
+  #pdf-render .pdf-step-text { font-size: 13px; color: var(--body); line-height: 1.8; white-space: pre-wrap; }
+  #pdf-render .pdf-footer { margin-top: 30px; padding-top: 12px; border-top: 1px solid var(--light-border); font-size: 10px; color: var(--mid); text-align: center; }
+
+  /* ===== Toast ===== */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--navy); color: white;
+    padding: 12px 24px; border-radius: 10px;
+    font-size: 13px; font-weight: 500;
+    opacity: 0; transition: all 0.3s ease;
+    z-index: 300; pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  #camera-input { display: none; }
+
+  /* ===== Generating overlay ===== */
+  .generating-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(26,31,54,0.85);
+    z-index: 250;
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px; color: white;
+  }
+  .generating-overlay.active { display: flex; }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 4px solid rgba(255,255,255,0.2);
+    border-top-color: var(--teal);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .generating-overlay p { font-size: 14px; font-weight: 500; }
+</style>
+</head>
+<body>
+
+<!-- Install banner (appears when PWA install is available) -->
+<div class="install-banner" id="installBanner">
+  <span style="font-size:20px;">📲</span>
+  <span class="install-text">ホーム画面に追加できます</span>
+  <button class="install-btn" id="installBtn">追加</button>
+  <button class="dismiss-btn" id="dismissInstall">✕</button>
+</div>
+
+<!-- Header -->
+<div class="app-header">
+  <button class="back-btn" id="backBtn">←</button>
+  <h1 id="headerTitle">マニュアル作成</h1>
+</div>
+
+<!-- Hidden camera input -->
+<input type="file" id="camera-input" accept="image/*" capture="environment">
+
+<!-- ===== Screen 1: Home ===== -->
+<div class="screen active" id="screen-home">
+  <div class="home-hero">
+    <div class="home-logo">M</div>
+    <h2>マニュアル作成アプリ</h2>
+    <p>テンプレートを選んで、写真とテキストで<br>業務マニュアルを簡単に作成</p>
+  </div>
+  <div class="home-actions">
+    <button class="btn-primary" onclick="goTo('screen-templates')">
+      <span class="btn-icon">＋</span> 新規作成
+    </button>
+    <button class="btn-secondary" onclick="loadSample()">
+      <span class="btn-icon">📂</span> サンプルデータを読み込む
+    </button>
+  </div>
+</div>
+
+<!-- ===== Screen 2: Template Selection ===== -->
+<div class="screen" id="screen-templates">
+  <p class="section-label">業種を選択</p>
+  <div class="template-grid" style="margin-bottom: 24px;">
+    <div class="template-card" data-industry="food" onclick="selectIndustry(this)">
+      <span class="card-emoji">🍽</span>
+      <div class="card-title">飲食</div>
+    </div>
+    <div class="template-card" data-industry="clean" onclick="selectIndustry(this)">
+      <span class="card-emoji">🧹</span>
+      <div class="card-title">清掃</div>
+    </div>
+    <div class="template-card" data-industry="medical" onclick="selectIndustry(this)">
+      <span class="card-emoji">🏥</span>
+      <div class="card-title">医療</div>
+    </div>
+    <div class="template-card" data-industry="hotel" onclick="selectIndustry(this)">
+      <span class="card-emoji">🏨</span>
+      <div class="card-title">宿泊</div>
+    </div>
+  </div>
+
+  <p class="section-label">テンプレートを選択</p>
+  <div class="template-grid">
+    <div class="template-card" onclick="selectTemplate('基本手順書')">
+      <span class="card-emoji">📋</span>
+      <div class="card-title">基本手順書</div>
+      <div class="card-desc">写真+テキスト</div>
+    </div>
+    <div class="template-card" onclick="selectTemplate('チェックリスト')">
+      <span class="card-emoji">✅</span>
+      <div class="card-title">チェックリスト</div>
+      <div class="card-desc">チェック欄付き</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Screen 3: Editor ===== -->
+<div class="screen" id="screen-editor" style="padding-bottom: 80px;">
+  <div class="editor-toolbar">
+    <button class="tool-btn" onclick="addStep()">
+      <span class="tool-icon">＋</span> 手順追加
+    </button>
+    <button class="tool-btn" onclick="saveToLocal()">
+      <span class="tool-icon">💾</span> 保存
+    </button>
+  </div>
+
+  <input class="manual-title-input" id="manualTitle" type="text" placeholder="マニュアルタイトルを入力">
+
+  <div class="step-container" id="stepContainer"></div>
+
+  <button class="add-step-btn" onclick="addStep()" style="margin-top: 16px;">
+    ＋ 手順を追加
+  </button>
+
+  <div class="bottom-bar">
+    <button class="btn-sm btn-outline" onclick="saveToLocal()">💾 保存</button>
+    <button class="btn-sm btn-teal" onclick="previewPDF()">👁 プレビュー</button>
+    <button class="btn-sm btn-navy" onclick="generatePDF()">📄 PDF出力</button>
+  </div>
+</div>
+
+<!-- ===== PDF Preview Modal ===== -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>PDFプレビュー</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="previewBody"></div>
+    <div style="padding: 0 20px 20px;">
+      <button class="btn-primary" onclick="generatePDF()" style="width:100%;">
+        📄 このままPDF出力
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PDF Render (offscreen) ===== -->
+<div id="pdf-render"></div>
+
+<!-- ===== Loading Overlay ===== -->
+<div class="generating-overlay" id="genOverlay">
+  <div class="spinner"></div>
+  <p>PDFを生成中...</p>
+</div>
+
+<!-- ===== Toast ===== -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== PWA: Service Worker登録 =====
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js')
+    .then(reg => console.log('SW registered:', reg.scope))
+    .catch(err => console.log('SW registration failed:', err));
+}
+
+// ===== PWA: インストールプロンプト制御 =====
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  $('#installBanner').addClass('show');
+});
+
+$('#installBtn').on('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const result = await deferredPrompt.userChoice;
+  if (result.outcome === 'accepted') {
+    showToast('ホーム画面に追加しました');
+  }
+  deferredPrompt = null;
+  $('#installBanner').removeClass('show');
+});
+
+$('#dismissInstall').on('click', () => {
+  $('#installBanner').removeClass('show');
+});
+
+// Detect if already installed (standalone mode)
+if (window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true) {
+  // Already running as PWA - hide install banner
+  $('#installBanner').removeClass('show');
+}
+
+
+// ===== App State =====
+let stepCount = 0;
+let currentPhotoTarget = null;
+
+// ===== Navigation =====
+function goTo(screenId) {
+  $('.screen').removeClass('active');
+  $('#' + screenId).addClass('active');
+  if (screenId === 'screen-home') {
+    $('#backBtn').removeClass('visible');
+    $('#headerTitle').text('マニュアル作成');
+  } else if (screenId === 'screen-templates') {
+    $('#backBtn').addClass('visible');
+    $('#headerTitle').text('テンプレート選択');
+  } else if (screenId === 'screen-editor') {
+    $('#backBtn').addClass('visible');
+    $('#headerTitle').text('マニュアル編集');
+  }
+  window.scrollTo(0, 0);
+}
+
+$('#backBtn').on('click', function() {
+  const current = $('.screen.active').attr('id');
+  if (current === 'screen-templates') goTo('screen-home');
+  else if (current === 'screen-editor') goTo('screen-templates');
+});
+
+// ===== Template Selection =====
+function selectIndustry(el) {
+  $('.template-card[data-industry]').removeClass('selected');
+  $(el).addClass('selected');
+}
+
+function selectTemplate(name) {
+  stepCount = 0;
+  $('#stepContainer').empty();
+  $('#manualTitle').val('');
+  addStep(); addStep(); addStep();
+  goTo('screen-editor');
+}
+
+// ===== Step Management =====
+function addStep() {
+  stepCount++;
+  const n = stepCount;
+  const html = `
+    <div class="step-card" id="step-${n}" data-step="${n}">
+      <div class="step-header">
+        <div class="step-number">${n}</div>
+        <input class="step-title-input" type="text" placeholder="手順タイトル">
+        <button class="step-delete" onclick="deleteStep(${n})">✕</button>
+      </div>
+      <div class="step-body">
+        <div class="photo-area" id="photo-area-${n}" onclick="takePhoto(${n})">
+          <div class="photo-placeholder">
+            <div class="ph-icon">📷</div>
+            <p>タップして写真を撮影 / 選択</p>
+          </div>
+          <button class="photo-remove" onclick="event.stopPropagation(); removePhoto(${n})">✕</button>
+        </div>
+        <textarea class="step-text" placeholder="手順の説明を入力してください..."></textarea>
+      </div>
+    </div>`;
+  $('#stepContainer').append(html);
+  renumberSteps();
+}
+
+function deleteStep(n) {
+  if ($('.step-card').length <= 1) { showToast('最低1つの手順が必要です'); return; }
+  $(`#step-${n}`).remove();
+  renumberSteps();
+}
+
+function renumberSteps() {
+  $('.step-card').each(function(i) { $(this).find('.step-number').text(i + 1); });
+}
+
+// ===== Camera / Photo =====
+function takePhoto(n) {
+  currentPhotoTarget = n;
+  $('#camera-input').trigger('click');
+}
+
+$('#camera-input').on('change', function(e) {
+  const file = e.target.files[0];
+  if (!file || !currentPhotoTarget) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const area = $(`#photo-area-${currentPhotoTarget}`);
+    area.addClass('has-image');
+    area.find('.photo-placeholder').hide();
+    area.find('img').remove();
+    area.prepend(`<img src="${ev.target.result}" alt="手順写真">`);
+    showToast('写真を追加しました');
+  };
+  reader.readAsDataURL(file);
+  $(this).val('');
+});
+
+function removePhoto(n) {
+  const area = $(`#photo-area-${n}`);
+  area.removeClass('has-image');
+  area.find('img').remove();
+  area.find('.photo-placeholder').show();
+}
+
+// ===== Local Storage 保存/読み込み =====
+function saveToLocal() {
+  const data = { title: $('#manualTitle').val(), steps: [] };
+  $('.step-card').each(function() {
+    data.steps.push({
+      title: $(this).find('.step-title-input').val(),
+      text: $(this).find('.step-text').val(),
+      image: $(this).find('.photo-area img').attr('src') || null,
+    });
+  });
+  try {
+    localStorage.setItem('manual_draft', JSON.stringify(data));
+    showToast('保存しました');
+  } catch(e) {
+    showToast('保存に失敗しました（容量不足の可能性）');
+  }
+}
+
+function loadFromLocal() {
+  try {
+    const raw = localStorage.getItem('manual_draft');
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    stepCount = 0;
+    $('#stepContainer').empty();
+    $('#manualTitle').val(data.title || '');
+    data.steps.forEach((s) => {
+      addStep();
+      const card = $(`.step-card:last`);
+      card.find('.step-title-input').val(s.title || '');
+      card.find('.step-text').val(s.text || '');
+      if (s.image) {
+        const area = card.find('.photo-area');
+        area.addClass('has-image');
+        area.find('.photo-placeholder').hide();
+        area.prepend(`<img src="${s.image}" alt="手順写真">`);
+      }
+    });
+    return true;
+  } catch(e) { return false; }
+}
+
+// ===== Load Sample Data =====
+function loadSample() {
+  stepCount = 0;
+  $('#stepContainer').empty();
+  $('#manualTitle').val('客室清掃マニュアル');
+  const samples = [
+    { title: 'ドアを開けて換気', text: 'ドアを開け、窓を開けて室内の空気を入れ替えます。\nエアコンをOFFにしてください。' },
+    { title: 'リネン類の回収', text: 'ベッドシーツ、枕カバー、タオル類を全て回収します。\n使用済みリネンは専用カートに入れてください。' },
+    { title: 'バスルーム清掃', text: '洗面台、トイレ、浴槽の順で清掃します。\n鏡の拭き上げを忘れずに行ってください。\nアメニティを補充し、タオルをセットします。' },
+  ];
+  samples.forEach((s) => {
+    addStep();
+    const card = $(`.step-card:last`);
+    card.find('.step-title-input').val(s.title);
+    card.find('.step-text').val(s.text);
+  });
+  goTo('screen-editor');
+  showToast('サンプルデータを読み込みました');
+}
+
+// ===== PDF Preview =====
+function previewPDF() {
+  const title = $('#manualTitle').val() || '無題のマニュアル';
+  let html = `<div style="font-family:'Noto Sans JP',sans-serif;">`;
+  html += `<h2 style="font-size:18px;font-weight:900;color:#1E2761;border-bottom:3px solid #0891B2;padding-bottom:8px;margin-bottom:16px;">${escHtml(title)}</h2>`;
+  html += `<p style="font-size:11px;color:#8896A7;margin-bottom:16px;">作成日: ${new Date().toLocaleDateString('ja-JP')}</p>`;
+  $('.step-card').each(function(i) {
+    const st = $(this).find('.step-title-input').val() || `手順 ${i+1}`;
+    const tx = $(this).find('.step-text').val() || '';
+    const img = $(this).find('.photo-area img');
+    html += `<div style="margin-bottom:20px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">`;
+    html += `<span style="background:#065A82;color:white;width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">${i+1}</span>`;
+    html += `<strong style="font-size:14px;color:#1A1F36;">${escHtml(st)}</strong></div>`;
+    if (img.length) html += `<img src="${img.attr('src')}" style="width:100%;border-radius:6px;margin-bottom:6px;border:1px solid #E2E8F0;">`;
+    if (tx) html += `<p style="font-size:12px;color:#3A4560;line-height:1.8;white-space:pre-wrap;">${escHtml(tx)}</p>`;
+    html += `</div>`;
+  });
+  html += `</div>`;
+  $('#previewBody').html(html);
+  $('#previewModal').addClass('active');
+}
+
+function closeModal() { $('#previewModal').removeClass('active'); }
+
+// ===== PDF Generation =====
+async function generatePDF() {
+  closeModal();
+  $('#genOverlay').addClass('active');
+  const title = $('#manualTitle').val() || '無題のマニュアル';
+  const now = new Date().toLocaleDateString('ja-JP');
+  let rh = `<div class="pdf-title">${escHtml(title)}</div>`;
+  rh += `<div class="pdf-meta">作成日: ${now}　|　業務用マニュアル作成アプリ</div>`;
+  $('.step-card').each(function(i) {
+    const st = $(this).find('.step-title-input').val() || `手順 ${i+1}`;
+    const tx = $(this).find('.step-text').val() || '';
+    const img = $(this).find('.photo-area img');
+    rh += `<div class="pdf-step"><div class="pdf-step-header">`;
+    rh += `<div class="pdf-step-num">${i+1}</div>`;
+    rh += `<div class="pdf-step-title">${escHtml(st)}</div></div>`;
+    if (img.length) rh += `<img class="pdf-step-img" src="${img.attr('src')}">`;
+    if (tx) rh += `<div class="pdf-step-text">${escHtml(tx)}</div>`;
+    rh += `</div>`;
+  });
+  rh += `<div class="pdf-footer">このマニュアルは「マニュアル作成アプリ」で作成されました — ${now}</div>`;
+  const renderEl = document.getElementById('pdf-render');
+  renderEl.innerHTML = rh;
+  await new Promise(r => setTimeout(r, 500));
+  try {
+    const canvas = await html2canvas(renderEl, { scale: 2, useCORS: true, logging: false, width: 595, windowWidth: 595 });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pw = 210, ph = 297;
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    const imgH = (canvas.height * pw) / canvas.width;
+    let left = imgH, pos = 0;
+    pdf.addImage(imgData, 'JPEG', 0, pos, pw, imgH);
+    left -= ph;
+    while (left > 0) { pos = -(imgH - left); pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, pos, pw, imgH); left -= ph; }
+    pdf.save(`${title}.pdf`);
+    showToast('PDFをダウンロードしました');
+  } catch (err) { console.error(err); showToast('PDF生成に失敗しました'); }
+  finally { $('#genOverlay').removeClass('active'); renderEl.innerHTML = ''; }
+}
+
+// ===== Utilities =====
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>'); }
+function showToast(m) { const t=$('#toast'); t.text(m).addClass('show'); setTimeout(()=>t.removeClass('show'),2000); }
+$('#previewModal').on('click', function(e) { if(e.target===this) closeModal(); });
+</script>
+</body>
+</html>
