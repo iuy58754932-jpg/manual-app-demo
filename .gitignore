@@ -26,3 +26,7 @@ dist-ssr
 # Generated artifacts
 bk/
 .claude/
+
+# Environment variables (contains API keys)
+.env
+.env.production

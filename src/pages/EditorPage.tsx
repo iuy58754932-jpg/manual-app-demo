@@ -5,6 +5,7 @@ import CanvasComponent from '../components/editor/Canvas'
 import PageNavigator from '../components/editor/PageNavigator'
 import ObjectMenu from '../components/editor/ObjectMenu'
 import PhotoEditorModal from '../components/editor/PhotoEditorModal'
+import ImageSearchModal from '../components/editor/ImageSearchModal'
 import Modal from '../components/common/Modal'
 import { showToast } from '../components/common/Toast'
 import { useCanvas } from '../hooks/useCanvas'
@@ -35,6 +36,7 @@ export default function EditorPage() {
   const [pendingPhotoDataUrl, setPendingPhotoDataUrl] = useState<string | null>(null)
   const [editingExistingImage, setEditingExistingImage] = useState(false)
   const [selectedObjectType, setSelectedObjectType] = useState<string | null>(null)
+  const [imageSearchOpen, setImageSearchOpen] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const editPhotoInputRef = useRef<HTMLInputElement>(null)
@@ -220,6 +222,15 @@ export default function EditorPage() {
     setPhotoEditorOpen(true)
   }, [getActiveImageSrc])
 
+  const handleSearchImage = useCallback(() => {
+    setImageSearchOpen(true)
+  }, [])
+
+  const handleImageSearchSelect = useCallback((dataUrl: string) => {
+    addImage(dataUrl)
+    setImageSearchOpen(false)
+  }, [addImage])
+
   const handlePhotoEditorComplete = useCallback((flattenedDataUrl: string) => {
     if (editingExistingImage) {
       replaceActiveImage(flattenedDataUrl)
@@ -349,6 +360,7 @@ export default function EditorPage() {
         onAddPhoto={handleAddPhoto}
         onAddEditedPhoto={handleAddEditedPhoto}
         onEditSelectedImage={handleEditSelectedImage}
+        onSearchImage={handleSearchImage}
         imageSelected={selectedObjectType === 'image'}
         onAddText={() => addText()}
         onZoomIn={zoomIn}
@@ -393,6 +405,13 @@ export default function EditorPage() {
         photoDataUrl={pendingPhotoDataUrl}
         onComplete={handlePhotoEditorComplete}
         onCancel={handlePhotoEditorCancel}
+      />
+
+      {/* Image Search Modal (Unsplash) */}
+      <ImageSearchModal
+        open={imageSearchOpen}
+        onClose={() => setImageSearchOpen(false)}
+        onSelect={handleImageSearchSelect}
       />
 
       <Modal open={pdfModalOpen} onClose={() => setPdfModalOpen(false)} title="PDF出力">
