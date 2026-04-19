@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>マニュアル作成アプリ - デザイン改良プレビュー</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: #F1F5F9;
+    color: #0F172A;
+    line-height: 1.6;
+  }
+
+  /* Page layout */
+  .page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  .title-block {
+    text-align: center;
+    padding: 48px 20px;
+    margin-bottom: 40px;
+  }
+  .title-block h1 {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 36px;
+    font-weight: 900;
+    color: #1E2761;
+    margin-bottom: 8px;
+  }
+  .title-block p { color: #64748B; font-size: 14px; }
+
+  .section {
+    background: white;
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .section h2 {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #0F172A;
+  }
+  .section .subtitle {
+    color: #64748B; font-size: 13px; margin-bottom: 24px;
+  }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 960px) { .compare { grid-template-columns: 1fr; } }
+
+  .compare-col {
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+  }
+  .compare-col.before { background: #FAFAFA; }
+  .compare-col.after { background: linear-gradient(180deg, #F0F7FF 0%, #FFF 100%); border-color: #0891B2; }
+
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+  }
+  .badge.before { background: #F1F5F9; color: #64748B; }
+  .badge.after { background: #0891B2; color: white; }
+
+  /* =========================================== */
+  /* 1. Color palette                              */
+  /* =========================================== */
+  .palette { display: flex; gap: 12px; flex-wrap: wrap; }
+  .swatch {
+    width: 80px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .swatch-color {
+    height: 60px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  .swatch-name { font-size: 10px; font-weight: 700; color: #0F172A; }
+  .swatch-hex { font-size: 9px; color: #64748B; font-family: 'Inter', monospace; }
+
+  /* =========================================== */
+  /* 2. Icons                                      */
+  /* =========================================== */
+  .icon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .icon-cell {
+    background: white;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 12px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: #64748B;
+  }
+  .icon-cell .emoji { font-size: 24px; }
+  .icon-cell .lucide-wrapper {
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    color: #065A82;
+  }
+  .icon-cell.active .lucide-wrapper { color: #E86A33; }
+
+  /* =========================================== */
+  /* 3. Typography                                 */
+  /* =========================================== */
+  .type-demo { background: white; border-radius: 12px; padding: 20px; }
+  .type-demo .h1 { font-size: 28px; font-weight: 700; color: #0F172A; margin-bottom: 4px; }
+  .type-demo .h2 { font-size: 16px; font-weight: 700; color: #334155; margin-bottom: 6px; }
+  .type-demo p { font-size: 13px; color: #64748B; line-height: 1.8; }
+  .type-demo .num { font-size: 32px; font-weight: 700; color: #065A82; }
+  .type-demo.before { font-family: 'Noto Sans JP', sans-serif; }
+  .type-demo.after .h1 { font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 900; }
+  .type-demo.after .num { font-family: 'Inter', sans-serif; }
+
+  /* =========================================== */
+  /* Phone mockups                                 */
+  /* =========================================== */
+  .phone-container {
+    display: flex; justify-content: center; padding: 12px 0;
+  }
+  .phone {
+    width: 280px;
+    height: 540px;
+    background: #1E2761;
+    border-radius: 32px;
+    padding: 12px;
+    box-shadow: 0 12px 32px rgba(30,39,97,0.25);
+    position: relative;
+  }
+  .phone::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px; height: 6px;
+    background: #0F172A;
+    border-radius: 10px;
+  }
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #F6F8FB;
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Phone v1 (current) */
+  .phone.current .phone-screen {
+    background: #F6F8FB;
+  }
+  .phone.current .app-header {
+    background: linear-gradient(135deg, #1E2761, #065A82);
+    color: white;
+    padding: 12px 14px;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .phone.current .home-body { padding: 24px 16px; text-align: center; }
+  .phone.current .logo {
+    width: 60px; height: 60px;
+    background: linear-gradient(135deg, #065A82, #0891B2);
+    border-radius: 18px;
+    margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 900; font-size: 30px;
+    box-shadow: 0 6px 18px rgba(8,145,178,0.3);
+  }
+  .phone.current h3 {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 15px; font-weight: 900;
+    color: #1E2761; margin-bottom: 4px;
+  }
+  .phone.current .desc { font-size: 10px; color: #8896A7; line-height: 1.5; margin-bottom: 18px; }
+  .phone.current .btn-primary {
+    background: linear-gradient(135deg, #065A82, #0891B2);
+    color: white; font-weight: 700; font-size: 12px;
+    padding: 12px; border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(8,145,178,0.3);
+    margin-bottom: 8px;
+  }
+  .phone.current .btn-secondary {
+    background: white; color: #065A82; font-weight: 700; font-size: 12px;
+    padding: 12px; border-radius: 10px;
+    border: 2px solid #E2E8F0;
+    margin-bottom: 14px;
+  }
+  .phone.current .recent-label { font-size: 9px; color: #8896A7; font-weight: 700; text-align: left; letter-spacing: 1.5px; margin-bottom: 6px; }
+  .phone.current .recent-item {
+    background: white; border: 1px solid #E2E8F0;
+    border-radius: 10px; padding: 8px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10px; color: #3A4560; text-align: left;
+    margin-bottom: 6px;
+  }
+  .phone.current .recent-thumb {
+    width: 26px; height: 30px; background: #F6F8FB; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+
+  /* Phone v2 (Plan A) */
+  .phone.plan-a {
+    background: #FAF8F1;
+  }
+  .phone.plan-a .phone-screen {
+    background: #FAF8F1;
+  }
+  .phone.plan-a .app-header {
+    background: #1C5D99;
+    color: white;
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .phone.plan-a .app-header h4 {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 14px; font-weight: 700;
+  }
+  .phone.plan-a .home-body { padding: 28px 18px; }
+  .phone.plan-a .logo {
+    width: 64px; height: 64px;
+    background: #1C5D99;
+    border-radius: 16px;
+    margin: 0 auto 14px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 30px;
+    position: relative;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+  }
+  .phone.plan-a .logo::after {
+    content: '';
+    position: absolute; top: -4px; right: -4px;
+    width: 20px; height: 20px;
+    background: #E86A33;
+    border-radius: 50%;
+    border: 3px solid #FAF8F1;
+  }
+  .phone.plan-a h3 {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 18px; font-weight: 900;
+    color: #1A1D2C; text-align: center; margin-bottom: 4px;
+  }
+  .phone.plan-a .desc { font-size: 11px; color: #64748B; text-align: center; line-height: 1.6; margin-bottom: 22px; }
+  .phone.plan-a .btn-primary {
+    background: #1C5D99;
+    color: white; font-weight: 600; font-size: 13px;
+    padding: 13px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .phone.plan-a .btn-secondary {
+    background: white; color: #1C5D99; font-weight: 600; font-size: 13px;
+    padding: 13px; border-radius: 12px;
+    border: 1.5px solid #E7E3D6;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-bottom: 18px;
+  }
+  .phone.plan-a .recent-label {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 11px; color: #64748B; font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .phone.plan-a .recent-item {
+    background: white; border: 1px solid #E7E3D6;
+    border-radius: 12px; padding: 10px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; color: #1A1D2C;
+    margin-bottom: 6px;
+  }
+  .phone.plan-a .recent-thumb {
+    width: 32px; height: 36px; background: #F5F0E4; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: #1C5D99;
+  }
+  .phone.plan-a .recent-item .meta {
+    font-size: 9px; color: #94A3B8; margin-top: 2px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Toolbar comparison */
+  .toolbar-before {
+    background: white; padding: 8px; border-radius: 8px;
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+    margin-bottom: 6px;
+  }
+  .toolbar-before + .toolbar-before { grid-template-columns: repeat(5, 1fr); }
+  .toolbar-before .btn {
+    background: white;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 6px;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  /* After toolbar: floating center design */
+  .toolbar-after-wrap {
+    background: linear-gradient(180deg, #FAF8F1 0%, #F1F5F9 100%);
+    border-radius: 12px; padding: 60px 20px 20px;
+    text-align: center; position: relative;
+    min-height: 160px;
+  }
+  .toolbar-after-wrap .hint {
+    position: absolute; top: 12px; left: 0; right: 0;
+    font-size: 10px; color: #94A3B8; font-style: italic;
+  }
+  .toolbar-fab {
+    display: inline-flex;
+    background: white;
+    border-radius: 50px;
+    padding: 6px;
+    box-shadow: 0 8px 24px rgba(28,93,153,0.15), 0 2px 6px rgba(0,0,0,0.06);
+    gap: 4px;
+  }
+  .toolbar-fab .fab-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #1C5D99;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .toolbar-fab .fab-btn.primary {
+    background: #1C5D99;
+    color: white;
+  }
+  .toolbar-fab .fab-btn.primary:hover { background: #155089; }
+  .toolbar-fab .fab-btn:hover { background: #F0F7FF; }
+  .toolbar-fab .fab-btn.accent {
+    background: #E86A33;
+    color: white;
+  }
+
+  /* Empty states */
+  .empty-before, .empty-after {
+    background: white; border-radius: 14px;
+    padding: 40px 20px;
+    text-align: center;
+    min-height: 280px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  }
+  .empty-before .icon-big { font-size: 48px; opacity: 0.5; }
+  .empty-before h4 { font-size: 14px; color: #8896A7; font-weight: 400; }
+
+  .empty-after .illustration {
+    width: 140px; height: 110px;
+    margin-bottom: 8px;
+  }
+  .empty-after h4 {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 16px; font-weight: 700; color: #1A1D2C;
+  }
+  .empty-after .sub { font-size: 11px; color: #64748B; margin-bottom: 12px; }
+  .empty-after .cta-wrap { display: flex; gap: 8px; }
+  .empty-after .cta-primary {
+    background: #1C5D99; color: white;
+    font-size: 12px; font-weight: 600;
+    padding: 10px 16px; border-radius: 8px;
+    border: none; display: flex; align-items: center; gap: 6px;
+    cursor: pointer;
+  }
+  .empty-after .cta-secondary {
+    background: white; color: #1C5D99;
+    font-size: 12px; font-weight: 600;
+    padding: 10px 16px; border-radius: 8px;
+    border: 1.5px solid #E7E3D6;
+    cursor: pointer;
+  }
+
+  /* Dark mode preview */
+  .dark-preview {
+    background: #0F172A;
+    border-radius: 20px;
+    padding: 24px;
+    color: white;
+  }
+  .dark-preview h2 { color: white; }
+  .dark-preview .subtitle { color: #94A3B8; }
+  .dark-phone {
+    background: #000;
+    border-radius: 32px;
+    padding: 12px;
+    width: 280px; height: 540px;
+    margin: 0 auto;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  .dark-phone::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px; height: 6px;
+    background: #0F172A;
+    border-radius: 10px;
+  }
+  .dark-phone-screen {
+    background: #0F172A;
+    border-radius: 20px;
+    height: 100%;
+    overflow: hidden;
+    color: white;
+  }
+  .dark-phone-screen .app-header {
+    background: #1E293B;
+    padding: 14px 16px;
+    color: white;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .dark-phone-screen .home-body { padding: 28px 18px; }
+  .dark-phone-screen .logo {
+    width: 64px; height: 64px;
+    background: #3B82F6;
+    border-radius: 16px;
+    margin: 0 auto 14px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 30px;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+  }
+  .dark-phone-screen h3 {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 18px; font-weight: 900;
+    color: white; text-align: center; margin-bottom: 4px;
+  }
+  .dark-phone-screen .desc { font-size: 11px; color: #94A3B8; text-align: center; line-height: 1.6; margin-bottom: 22px; }
+  .dark-phone-screen .btn-primary {
+    background: #3B82F6;
+    color: white; font-weight: 600; font-size: 13px;
+    padding: 13px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .dark-phone-screen .btn-secondary {
+    background: #1E293B; color: #3B82F6;
+    font-weight: 600; font-size: 13px;
+    padding: 13px; border-radius: 12px;
+    border: 1.5px solid #334155;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  /* Summary */
+  .summary {
+    background: linear-gradient(135deg, #1E2761, #065A82);
+    color: white;
+    border-radius: 20px;
+    padding: 40px 32px;
+    text-align: center;
+  }
+  .summary h2 { color: white; font-family: 'Zen Kaku Gothic New', sans-serif; }
+  .summary .subtitle { color: #CBD5E1; margin-bottom: 24px; }
+  .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+  @media (max-width: 900px) { .plans { grid-template-columns: 1fr; } }
+  .plan-card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: left;
+  }
+  .plan-card.highlight {
+    background: #E86A33;
+    border-color: #E86A33;
+  }
+  .plan-card h4 { font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .plan-card .price { font-family: 'Inter', sans-serif; font-size: 24px; font-weight: 700; margin: 10px 0; }
+  .plan-card ul { list-style: none; font-size: 12px; }
+  .plan-card li { padding: 4px 0; display: flex; gap: 6px; }
+
+  .tab-switcher {
+    display: flex;
+    gap: 4px;
+    background: white;
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 16px;
+    width: fit-content;
+  }
+  .tab-switcher button {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #64748B;
+    font-family: inherit;
+  }
+  .tab-switcher button.active {
+    background: #1C5D99;
+    color: white;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="title-block">
+    <h1>🎨 デザイン改良プレビュー</h1>
+    <p>マニュアル作成アプリ v1.6 / Plan A (ビジュアル刷新) の提案</p>
+  </div>
+
+  <!-- Section 1: Color Palette -->
+  <div class="section">
+    <h2>1. カラーパレット</h2>
+    <p class="subtitle">「業務用ツール」感から「マニュアル=紙のメタファー」へ</p>
+
+    <div class="compare">
+      <div class="compare-col before">
+        <span class="badge before">BEFORE — 現状</span>
+        <div class="palette">
+          <div class="swatch">
+            <div class="swatch-color" style="background: #065A82;"></div>
+            <div class="swatch-name">Primary</div>
+            <div class="swatch-hex">#065A82</div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #1E2761;"></div>
+            <div class="swatch-name">Secondary</div>
+            <div class="swatch-hex">#1E2761</div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #0891B2;"></div>
+            <div class="swatch-name">Accent</div>
+            <div class="swatch-hex">#0891B2</div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #F6F8FB; border: 1px solid #E2E8F0;"></div>
+            <div class="swatch-name">BG</div>
+            <div class="swatch-hex">#F6F8FB</div>
+          </div>
+        </div>
+        <p style="font-size: 12px; color: #64748B; margin-top: 16px;">
+          クールな青系で統一 → 一般的な業務アプリ感。
+        </p>
+      </div>
+
+      <div class="compare-col after">
+        <span class="badge after">AFTER — Craft/Paper テーマ</span>
+        <div class="palette">
+          <div class="swatch">
+            <div class="swatch-color" style="background: #1C5D99;"></div>
+            <div class="swatch-name">Primary</div>
+            <div class="swatch-hex">#1C5D99</div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #E86A33;"></div>
+            <div class="swatch-name">Accent</div>
+            <div class="swatch-hex">#E86A33</div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #FAF8F1; border: 1px solid #E7E3D6;"></div>
+            <div class="swatch-name">Paper BG</div>
+            <div class="swatch-hex">#FAF8F1</div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #1A1D2C;"></div>
+            <div class="swatch-name">Text</div>
+            <div class="swatch-hex">#1A1D2C</div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #22C55E;"></div>
+            <div class="swatch-name">Success</div>
+            <div class="swatch-hex">#22C55E</div>
+          </div>
+        </div>
+        <p style="font-size: 12px; color: #64748B; margin-top: 16px;">
+          青+オレンジの差し色 + クリーム背景で「紙」の質感。現場作業感も演出。
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Icons -->
+  <div class="section">
+    <h2>2. アイコンシステム</h2>
+    <p class="subtitle">絵文字 → Lucide SVG アイコン（統一感・プロ感）</p>
+
+    <div class="compare">
+      <div class="compare-col before">
+        <span class="badge before">BEFORE — 絵文字</span>
+        <div class="icon-grid">
+          <div class="icon-cell"><span class="emoji">📷</span><span>写真</span></div>
+          <div class="icon-cell"><span class="emoji">✏️</span><span>手描き</span></div>
+          <div class="icon-cell"><span class="emoji">Aa</span><span>テキスト</span></div>
+          <div class="icon-cell"><span class="emoji">🎤</span><span>音声</span></div>
+          <div class="icon-cell"><span class="emoji">🔳</span><span>QR</span></div>
+          <div class="icon-cell"><span class="emoji">🖼</span><span>編集</span></div>
+          <div class="icon-cell"><span class="emoji">↩</span><span>戻す</span></div>
+          <div class="icon-cell"><span class="emoji">🗑</span><span>削除</span></div>
+        </div>
+        <p style="font-size: 11px; color: #64748B; margin-top: 12px;">
+          ⚠️ iOSとAndroidで見た目が大きく変わる / サイズ調整不可
+        </p>
+      </div>
+
+      <div class="compare-col after">
+        <span class="badge after">AFTER — Lucide Icons</span>
+        <div class="icon-grid">
+          <div class="icon-cell"><div class="lucide-wrapper"><i data-lucide="camera"></i></div><span>写真</span></div>
+          <div class="icon-cell"><div class="lucide-wrapper"><i data-lucide="pen-tool"></i></div><span>手描き</span></div>
+          <div class="icon-cell"><div class="lucide-wrapper"><i data-lucide="type"></i></div><span>テキスト</span></div>
+          <div class="icon-cell"><div class="lucide-wrapper"><i data-lucide="mic"></i></div><span>音声</span></div>
+          <div class="icon-cell"><div class="lucide-wrapper"><i data-lucide="qr-code"></i></div><span>QR</span></div>
+          <div class="icon-cell active"><div class="lucide-wrapper"><i data-lucide="image"></i></div><span>編集</span></div>
+          <div class="icon-cell"><div class="lucide-wrapper"><i data-lucide="undo-2"></i></div><span>戻す</span></div>
+          <div class="icon-cell"><div class="lucide-wrapper"><i data-lucide="trash-2"></i></div><span>削除</span></div>
+        </div>
+        <p style="font-size: 11px; color: #64748B; margin-top: 12px;">
+          ✓ 全端末で統一 / 自由にサイズ・色変更 / 1500+アイコン / MITライセンス
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: Typography -->
+  <div class="section">
+    <h2>3. タイポグラフィ</h2>
+    <p class="subtitle">単一フォント → 見出し用ディスプレイフォント + 数字用フォント追加</p>
+
+    <div class="compare">
+      <div class="compare-col before">
+        <span class="badge before">BEFORE</span>
+        <div class="type-demo before">
+          <div class="h1">マニュアル作成アプリ</div>
+          <div class="h2">業務マニュアルをスマホで</div>
+          <p>テンプレートから選んで、写真・文字・手描き・QRコードで業務マニュアルを簡単に作成できます。</p>
+          <div style="margin-top: 12px;">
+            <span class="num">13</span>
+            <span style="font-size: 13px; color: #64748B;">種類のテンプレート</span>
+          </div>
+        </div>
+        <p style="font-size: 11px; color: #64748B; margin-top: 12px;">
+          全て Noto Sans JP 単一。メリハリが弱く、見出しと本文の差が出にくい。
+        </p>
+      </div>
+
+      <div class="compare-col after">
+        <span class="badge after">AFTER</span>
+        <div class="type-demo after">
+          <div class="h1">マニュアル作成アプリ</div>
+          <div class="h2">業務マニュアルをスマホで</div>
+          <p>テンプレートから選んで、写真・文字・手描き・QRコードで業務マニュアルを簡単に作成できます。</p>
+          <div style="margin-top: 12px;">
+            <span class="num">13</span>
+            <span style="font-size: 13px; color: #64748B;">種類のテンプレート</span>
+          </div>
+        </div>
+        <p style="font-size: 11px; color: #64748B; margin-top: 12px;">
+          見出し: <strong>Zen Kaku Gothic New Black</strong> / 本文: Noto Sans JP / 数字: <strong>Inter</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4: Home screen -->
+  <div class="section">
+    <h2>4. ホーム画面</h2>
+    <p class="subtitle">全要素の統合イメージ — カラー・アイコン・タイポが一体化</p>
+
+    <div class="compare">
+      <div class="compare-col before">
+        <span class="badge before">BEFORE — v1.6 現状</span>
+        <div class="phone-container">
+          <div class="phone current">
+            <div class="phone-screen">
+              <div class="app-header">マニュアル作成</div>
+              <div class="home-body">
+                <div class="logo">M</div>
+                <h3>マニュアル作成アプリ</h3>
+                <div class="desc">テンプレートを選んで、写真とテキストで<br>業務マニュアルを簡単に作成</div>
+                <div class="btn-primary">＋ 新規作成</div>
+                <div class="btn-secondary">📂 ファイル読み込み</div>
+                <div class="recent-label">最近のファイル</div>
+                <div class="recent-item">
+                  <div class="recent-thumb">📄</div>
+                  <div>客室清掃マニュアル<br><span style="font-size:8px;color:#8896A7">2026/04/15</span></div>
+                </div>
+                <div class="recent-item">
+                  <div class="recent-thumb">📄</div>
+                  <div>衛生チェックリスト<br><span style="font-size:8px;color:#8896A7">2026/04/14</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="compare-col after">
+        <span class="badge after">AFTER — Plan A</span>
+        <div class="phone-container">
+          <div class="phone plan-a">
+            <div class="phone-screen">
+              <div class="app-header">
+                <i data-lucide="file-text" style="width:18px;height:18px;"></i>
+                <h4>マニュアル作成</h4>
+              </div>
+              <div class="home-body">
+                <div class="logo">M</div>
+                <h3>マニュアル作成アプリ</h3>
+                <div class="desc">撮って、書いて、共有する。<br>業務マニュアルを最速で。</div>
+                <div class="btn-primary">
+                  <i data-lucide="plus" style="width:16px;height:16px;"></i>
+                  新規作成
+                </div>
+                <div class="btn-secondary">
+                  <i data-lucide="folder-open" style="width:16px;height:16px;"></i>
+                  ファイルを開く
+                </div>
+                <div class="recent-label">最近のファイル</div>
+                <div class="recent-item">
+                  <div class="recent-thumb"><i data-lucide="file-text" style="width:16px;height:16px;"></i></div>
+                  <div>
+                    <div style="font-weight:700">客室清掃マニュアル</div>
+                    <div class="meta">04/15 · 3ページ</div>
+                  </div>
+                </div>
+                <div class="recent-item">
+                  <div class="recent-thumb"><i data-lucide="file-text" style="width:16px;height:16px;"></i></div>
+                  <div>
+                    <div style="font-weight:700">衛生チェックリスト</div>
+                    <div class="meta">04/14 · 2ページ</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 5: Toolbar redesign (Plan B preview) -->
+  <div class="section">
+    <h2>5. ツールバー（Plan B 先取り）</h2>
+    <p class="subtitle">12ボタン2行 → フローティング展開式（初期表示すっきり）</p>
+
+    <div class="compare">
+      <div class="compare-col before">
+        <span class="badge before">BEFORE — 全部並べる</span>
+        <div class="toolbar-before">
+          <div class="btn">📷</div>
+          <div class="btn">📷+</div>
+          <div class="btn">🖼</div>
+          <div class="btn">Aa</div>
+          <div class="btn">🎤</div>
+          <div class="btn">🔳</div>
+          <div class="btn">✏️</div>
+        </div>
+        <div class="toolbar-before">
+          <div class="btn">🔍+</div>
+          <div class="btn">🔍−</div>
+          <div class="btn">↩</div>
+          <div class="btn">↪</div>
+          <div class="btn">🗑</div>
+        </div>
+        <p style="font-size: 11px; color: #64748B; margin-top: 12px;">
+          ⚠️ 初見ユーザーには情報過多。画面の面積を占有。
+        </p>
+      </div>
+
+      <div class="compare-col after">
+        <span class="badge after">AFTER — フローティング展開式</span>
+        <div class="toolbar-after-wrap">
+          <div class="hint">（編集エリアにスッキリ集中）</div>
+          <div class="toolbar-fab">
+            <div class="fab-btn primary">
+              <i data-lucide="plus" style="width:20px;height:20px;"></i>
+            </div>
+            <div class="fab-btn accent">
+              <i data-lucide="pen-tool" style="width:20px;height:20px;"></i>
+            </div>
+            <div class="fab-btn">
+              <i data-lucide="undo-2" style="width:20px;height:20px;"></i>
+            </div>
+            <div class="fab-btn">
+              <i data-lucide="more-horizontal" style="width:20px;height:20px;"></i>
+            </div>
+          </div>
+        </div>
+        <p style="font-size: 11px; color: #64748B; margin-top: 12px;">
+          ✓ Canva / Figma 風の中央固定。+ タップで追加メニュー展開（写真/文字/QR/音声）。
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 6: Empty State -->
+  <div class="section">
+    <h2>6. 空状態のデザイン</h2>
+    <p class="subtitle">「ファイルがありません」 → 初回体験をガイド</p>
+
+    <div class="compare">
+      <div class="compare-col before">
+        <span class="badge before">BEFORE</span>
+        <div class="empty-before">
+          <div class="icon-big">📭</div>
+          <h4>保存されたファイルがありません</h4>
+        </div>
+      </div>
+
+      <div class="compare-col after">
+        <span class="badge after">AFTER</span>
+        <div class="empty-after">
+          <svg class="illustration" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg">
+            <!-- Paper stack -->
+            <rect x="20" y="30" width="60" height="75" rx="4" fill="#FAF8F1" stroke="#E7E3D6" stroke-width="1.5" transform="rotate(-6 50 67)"/>
+            <rect x="30" y="25" width="60" height="75" rx="4" fill="white" stroke="#E7E3D6" stroke-width="1.5"/>
+            <!-- Content lines -->
+            <rect x="36" y="32" width="20" height="3" rx="1.5" fill="#1C5D99"/>
+            <rect x="36" y="40" width="48" height="2" rx="1" fill="#CBD5E1"/>
+            <rect x="36" y="46" width="48" height="2" rx="1" fill="#CBD5E1"/>
+            <rect x="36" y="52" width="30" height="2" rx="1" fill="#CBD5E1"/>
+            <!-- Image placeholder -->
+            <rect x="36" y="60" width="48" height="22" rx="2" fill="#F5F0E4" stroke="#E7E3D6" stroke-width="1"/>
+            <circle cx="46" cy="71" r="2" fill="#E86A33"/>
+            <path d="M 40 78 L 52 67 L 62 75 L 80 62 L 80 82 L 40 82 Z" fill="#CBD5E1"/>
+            <!-- Pencil -->
+            <g transform="translate(85 75) rotate(30)">
+              <rect x="0" y="0" width="35" height="6" fill="#E86A33"/>
+              <polygon points="35,0 42,3 35,6" fill="#1A1D2C"/>
+              <rect x="-3" y="0" width="3" height="6" fill="#FBBF24"/>
+            </g>
+            <!-- Plus signs as decoration -->
+            <text x="105" y="35" font-size="12" fill="#E86A33" font-weight="700">+</text>
+            <text x="15" y="20" font-size="10" fill="#CBD5E1" font-weight="700">+</text>
+          </svg>
+          <h4>最初のマニュアルを作りましょう</h4>
+          <div class="sub">テンプレートから選んで3分で完成</div>
+          <div class="cta-wrap">
+            <button class="cta-primary">
+              <i data-lucide="plus" style="width:14px;height:14px;"></i>
+              新規作成
+            </button>
+            <button class="cta-secondary">サンプルを試す</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 7: Dark Mode -->
+  <div class="dark-preview section" style="margin-bottom: 24px;">
+    <h2>7. ダークモード（Plan B）</h2>
+    <p class="subtitle">屋外・暗所での作業に配慮 / OLED端末でバッテリー節約</p>
+
+    <div class="compare" style="margin-top: 24px;">
+      <div class="compare-col after" style="background: transparent; border-color: #334155;">
+        <span class="badge" style="background: #3B82F6; color: white;">DARK MODE</span>
+        <div class="phone-container">
+          <div class="dark-phone">
+            <div class="dark-phone-screen">
+              <div class="app-header">
+                <i data-lucide="file-text" style="width:18px;height:18px;color:#3B82F6"></i>
+                <h4 style="font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 14px; font-weight: 700;">マニュアル作成</h4>
+              </div>
+              <div class="home-body">
+                <div class="logo">M</div>
+                <h3>マニュアル作成アプリ</h3>
+                <div class="desc">撮って、書いて、共有する。<br>業務マニュアルを最速で。</div>
+                <div class="btn-primary">
+                  <i data-lucide="plus" style="width:16px;height:16px;"></i>
+                  新規作成
+                </div>
+                <div class="btn-secondary">
+                  <i data-lucide="folder-open" style="width:16px;height:16px;"></i>
+                  ファイルを開く
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="compare-col" style="background: transparent; border-color: #334155; padding: 32px;">
+        <h3 style="font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 18px; margin-bottom: 16px; color: white;">ダークモードのメリット</h3>
+        <div style="display: flex; flex-direction: column; gap: 16px; color: #CBD5E1; font-size: 13px;">
+          <div style="display: flex; gap: 12px;">
+            <div style="width: 32px; height: 32px; background: rgba(59,130,246,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i data-lucide="moon" style="color: #3B82F6;"></i></div>
+            <div>
+              <div style="font-weight: 700; color: white;">暗所で目が疲れない</div>
+              <div style="font-size: 11px; color: #94A3B8;">夜勤・暗い倉庫・屋外夜間作業に最適</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <div style="width: 32px; height: 32px; background: rgba(34,197,94,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i data-lucide="battery-charging" style="color: #22C55E;"></i></div>
+            <div>
+              <div style="font-weight: 700; color: white;">バッテリー節約</div>
+              <div style="font-size: 11px; color: #94A3B8;">iPhone 以降の OLED で最大30%削減</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <div style="width: 32px; height: 32px; background: rgba(232,106,51,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i data-lucide="settings" style="color: #E86A33;"></i></div>
+            <div>
+              <div style="font-weight: 700; color: white;">自動/手動切替</div>
+              <div style="font-size: 11px; color: #94A3B8;">端末設定に連動 + 手動でオン/オフ可能</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary">
+    <h2 style="font-size: 24px; margin-bottom: 8px;">実装プランのご提案</h2>
+    <div class="subtitle">用途・予算に応じて3段階からお選びいただけます</div>
+
+    <div class="plans">
+      <div class="plan-card">
+        <div style="font-size: 11px; color: #94A3B8;">PLAN A</div>
+        <h4>デザインリフレッシュ</h4>
+        <div style="font-size: 12px; color: #CBD5E1; margin-bottom: 8px;">見た目を一新・低コスト</div>
+        <div class="price">30〜40<span style="font-size: 14px;">万円</span></div>
+        <ul>
+          <li>✓ アイコンSVG化</li>
+          <li>✓ カラーリファイン</li>
+          <li>✓ タイポグラフィ強化</li>
+        </ul>
+        <div style="font-size: 10px; color: #94A3B8; margin-top: 10px;">期間: 0.5人月</div>
+      </div>
+
+      <div class="plan-card highlight">
+        <div style="font-size: 11px;">PLAN B ⭐ おすすめ</div>
+        <h4>UX大幅改善</h4>
+        <div style="font-size: 12px; margin-bottom: 8px;">「触って気持ちいい」アプリへ</div>
+        <div class="price">110〜150<span style="font-size: 14px;">万円</span></div>
+        <ul>
+          <li>✓ Plan A 全部 +</li>
+          <li>✓ ツールバー再設計</li>
+          <li>✓ 空状態イラスト</li>
+          <li>✓ マイクロ演出</li>
+          <li>✓ ダークモード</li>
+        </ul>
+        <div style="font-size: 10px; margin-top: 10px;">期間: 1.8人月</div>
+      </div>
+
+      <div class="plan-card">
+        <div style="font-size: 11px; color: #94A3B8;">PLAN C</div>
+        <h4>フル刷新</h4>
+        <div style="font-size: 12px; color: #CBD5E1; margin-bottom: 8px;">商用レベルの完成度</div>
+        <div class="price">150〜200<span style="font-size: 14px;">万円</span></div>
+        <ul>
+          <li>✓ Plan B 全部 +</li>
+          <li>✓ オンボーディング</li>
+          <li>✓ キーボードショートカット</li>
+          <li>✓ 画面遷移統一</li>
+        </ul>
+        <div style="font-size: 10px; color: #94A3B8; margin-top: 10px;">期間: 2.5人月</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Initialize Lucide icons
+  lucide.createIcons();
+</script>
+
+</body>
+</html>

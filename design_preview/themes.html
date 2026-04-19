@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>テーマバリエーション — マニュアル作成アプリ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: #F1F5F9;
+    color: #0F172A;
+    line-height: 1.6;
+  }
+
+  .page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  .title-block {
+    text-align: center;
+    padding: 48px 20px;
+    margin-bottom: 40px;
+  }
+  .title-block h1 {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 36px;
+    font-weight: 900;
+    color: #1E2761;
+    margin-bottom: 8px;
+  }
+  .title-block p { color: #64748B; font-size: 14px; }
+  .title-block .nav-back {
+    display: inline-block;
+    background: white;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: #475569;
+    text-decoration: none;
+    margin-top: 16px;
+  }
+
+  /* Navigation tabs */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+  .tab {
+    padding: 10px 18px;
+    border: 2px solid transparent;
+    background: white;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #64748B;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: #1E2761;
+    color: white;
+    border-color: #1E2761;
+  }
+  .tab:hover:not(.active) { border-color: #CBD5E1; }
+
+  /* Theme grid */
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  @media (max-width: 1100px) { .theme-grid { grid-template-columns: 1fr; } }
+
+  .theme-card {
+    background: white;
+    border-radius: 24px;
+    padding: 28px;
+    border: 2px solid #E2E8F0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .theme-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  .theme-header .title-area h3 {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+  .theme-header .title-area .en {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #94A3B8;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .theme-header .title-area p {
+    font-size: 13px;
+    color: #64748B;
+  }
+  .theme-fit {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  /* Palette swatches */
+  .palette {
+    display: flex;
+    gap: 8px;
+    border-radius: 12px;
+    overflow: hidden;
+    height: 48px;
+    border: 1px solid #E2E8F0;
+  }
+  .palette .swatch {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 4px 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 8px;
+    font-weight: 600;
+  }
+  .swatch.light { color: rgba(0,0,0,0.6); }
+  .swatch.dark { color: rgba(255,255,255,0.85); }
+
+  /* Phone preview */
+  .phone-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 16px 0;
+  }
+  .phone-mini {
+    width: 240px;
+    height: 430px;
+    border-radius: 28px;
+    padding: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    position: relative;
+  }
+  .phone-mini::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 64px; height: 4px;
+    background: rgba(0,0,0,0.85);
+    border-radius: 8px;
+    z-index: 2;
+  }
+  .phone-screen {
+    height: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Common phone content styles */
+  .phone-screen .app-header {
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .phone-screen .app-header h4 {
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .phone-screen .body {
+    padding: 20px 16px;
+    flex: 1;
+  }
+  .phone-screen .logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 26px;
+  }
+  .phone-screen h3 {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 15px;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .phone-screen .desc {
+    font-size: 10px;
+    text-align: center;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  .phone-screen .btn {
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .phone-screen .recent-title {
+    font-size: 9px;
+    font-weight: 700;
+    margin: 12px 0 6px;
+  }
+  .phone-screen .recent-item {
+    border-radius: 10px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+  .phone-screen .recent-thumb {
+    width: 24px; height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* =========================
+     THEME 1: Craft / Paper (already shown in original preview)
+     ========================= */
+  .theme-card.craft {
+    background: linear-gradient(180deg, #FAF8F1 0%, #FFF 60%);
+    border-color: #E7E3D6;
+  }
+  .theme-card.craft .theme-fit { background: #1C5D99; color: white; }
+  .phone-mini.craft { background: #FAF8F1; }
+  .phone-mini.craft .phone-screen { background: #FAF8F1; }
+  .phone-mini.craft .app-header { background: #1C5D99; color: white; }
+  .phone-mini.craft .logo {
+    background: #1C5D99; color: white;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    position: relative;
+  }
+  .phone-mini.craft .logo::after {
+    content: '';
+    position: absolute; top: -3px; right: -3px;
+    width: 16px; height: 16px;
+    background: #E86A33;
+    border-radius: 50%;
+    border: 2px solid #FAF8F1;
+  }
+  .phone-mini.craft h3 { color: #1A1D2C; }
+  .phone-mini.craft .desc { color: #64748B; }
+  .phone-mini.craft .btn.primary { background: #1C5D99; color: white; }
+  .phone-mini.craft .btn.secondary { background: white; color: #1C5D99; border: 1.5px solid #E7E3D6; }
+  .phone-mini.craft .recent-title { color: #64748B; }
+  .phone-mini.craft .recent-item { background: white; border: 1px solid #E7E3D6; color: #1A1D2C; }
+  .phone-mini.craft .recent-thumb { background: #F5F0E4; color: #1C5D99; }
+
+  /* =========================
+     THEME 2: Industrial
+     ========================= */
+  .theme-card.industrial {
+    background: linear-gradient(180deg, #F8FAFC 0%, #FFF 60%);
+    border-color: #CBD5E1;
+  }
+  .theme-card.industrial .theme-fit { background: #475569; color: #FCD34D; }
+  .phone-mini.industrial { background: #1E293B; }
+  .phone-mini.industrial .phone-screen { background: #F1F5F9; }
+  .phone-mini.industrial .app-header {
+    background: #1E293B;
+    color: white;
+    border-bottom: 3px solid #FCD34D;
+  }
+  .phone-mini.industrial .logo {
+    background: #1E293B; color: white;
+    position: relative;
+    /* hazard stripes */
+    background: repeating-linear-gradient(
+      45deg, #1E293B, #1E293B 6px, #FCD34D 6px, #FCD34D 8px
+    );
+  }
+  .phone-mini.industrial .logo span {
+    background: #1E293B; color: white;
+    padding: 4px 8px; border-radius: 4px;
+  }
+  .phone-mini.industrial h3 { color: #1E293B; }
+  .phone-mini.industrial .desc { color: #64748B; }
+  .phone-mini.industrial .btn.primary {
+    background: #EAB308; color: #1E293B;
+    border: 2px solid #1E293B;
+  }
+  .phone-mini.industrial .btn.secondary {
+    background: white; color: #1E293B;
+    border: 2px solid #CBD5E1;
+  }
+  .phone-mini.industrial .recent-title { color: #475569; text-transform: uppercase; letter-spacing: 1px; }
+  .phone-mini.industrial .recent-item {
+    background: white; border-left: 4px solid #EAB308;
+    color: #1E293B; border-radius: 4px;
+  }
+  .phone-mini.industrial .recent-thumb { background: #1E293B; color: #EAB308; }
+
+  /* =========================
+     THEME 3: Fresh Mint
+     ========================= */
+  .theme-card.fresh {
+    background: linear-gradient(180deg, #F0FDFA 0%, #FFF 60%);
+    border-color: #99F6E4;
+  }
+  .theme-card.fresh .theme-fit { background: #0D9488; color: white; }
+  .phone-mini.fresh { background: #0D9488; }
+  .phone-mini.fresh .phone-screen { background: #F0FDFA; }
+  .phone-mini.fresh .app-header { background: white; color: #0F172A; border-bottom: 1px solid #99F6E4; }
+  .phone-mini.fresh .logo {
+    background: linear-gradient(135deg, #14B8A6, #0D9488);
+    color: white;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(13,148,136,0.25);
+  }
+  .phone-mini.fresh h3 { color: #134E4A; }
+  .phone-mini.fresh .desc { color: #5F7D7A; }
+  .phone-mini.fresh .btn.primary {
+    background: linear-gradient(135deg, #14B8A6, #0D9488);
+    color: white;
+    border-radius: 50px;
+  }
+  .phone-mini.fresh .btn.secondary {
+    background: white; color: #0D9488;
+    border: 1.5px solid #99F6E4;
+    border-radius: 50px;
+  }
+  .phone-mini.fresh .recent-title { color: #0D9488; }
+  .phone-mini.fresh .recent-item {
+    background: white;
+    box-shadow: 0 2px 6px rgba(13,148,136,0.08);
+    color: #134E4A;
+  }
+  .phone-mini.fresh .recent-thumb { background: #CCFBF1; color: #0D9488; }
+
+  /* =========================
+     THEME 4: Premium Noir
+     ========================= */
+  .theme-card.premium {
+    background: linear-gradient(180deg, #FAFAF9 0%, #FFF 60%);
+    border-color: #CA8A04;
+  }
+  .theme-card.premium .theme-fit { background: #1E293B; color: #CA8A04; }
+  .phone-mini.premium { background: #000; }
+  .phone-mini.premium .phone-screen { background: #1E293B; color: white; }
+  .phone-mini.premium .app-header {
+    background: #0F172A; color: white;
+    border-bottom: 1px solid #CA8A04;
+  }
+  .phone-mini.premium .logo {
+    background: #0F172A;
+    color: #CA8A04;
+    border: 2px solid #CA8A04;
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+  }
+  .phone-mini.premium h3 { color: #F8FAFC; font-family: 'Playfair Display', serif; font-weight: 900; }
+  .phone-mini.premium .desc { color: #94A3B8; }
+  .phone-mini.premium .btn.primary {
+    background: #CA8A04; color: #0F172A;
+    letter-spacing: 1px;
+  }
+  .phone-mini.premium .btn.secondary {
+    background: transparent; color: #CA8A04;
+    border: 1px solid #CA8A04;
+    letter-spacing: 1px;
+  }
+  .phone-mini.premium .recent-title { color: #CA8A04; letter-spacing: 2px; }
+  .phone-mini.premium .recent-item {
+    background: rgba(202,138,4,0.08);
+    border: 1px solid rgba(202,138,4,0.2);
+    color: #E2E8F0;
+  }
+  .phone-mini.premium .recent-thumb { background: #0F172A; color: #CA8A04; }
+
+  /* =========================
+     THEME 5: Bistro (飲食特化)
+     ========================= */
+  .theme-card.bistro {
+    background: linear-gradient(180deg, #FEF7E0 0%, #FFF 60%);
+    border-color: #C2410C;
+    position: relative;
+  }
+  .theme-card.bistro::before {
+    content: 'FOOD INDUSTRY';
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #C2410C;
+    color: #FEF7E0;
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+  .theme-card.bistro .theme-fit { background: #C2410C; color: #FEF7E0; }
+  .phone-mini.bistro { background: #7C2D12; }
+  .phone-mini.bistro .phone-screen { background: #FEF7E0; }
+  .phone-mini.bistro .app-header {
+    background: #7C2D12;
+    color: #FEF7E0;
+    border-bottom: 2px solid #D97706;
+  }
+  .phone-mini.bistro .logo {
+    background: #7C2D12; color: #FEF7E0;
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    border: 3px solid #D97706;
+    box-shadow: 0 4px 12px rgba(124,45,18,0.2);
+  }
+  .phone-mini.bistro h3 {
+    color: #7C2D12;
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+  }
+  .phone-mini.bistro .desc { color: #57534E; font-style: italic; }
+  .phone-mini.bistro .btn.primary {
+    background: #C2410C; color: #FEF7E0;
+    letter-spacing: 0.5px;
+  }
+  .phone-mini.bistro .btn.secondary {
+    background: white; color: #7C2D12;
+    border: 1.5px solid #D97706;
+  }
+  .phone-mini.bistro .recent-title {
+    color: #7C2D12;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+  }
+  .phone-mini.bistro .recent-item {
+    background: white;
+    border-left: 3px solid #D97706;
+    color: #292524;
+    border-radius: 6px;
+  }
+  .phone-mini.bistro .recent-thumb {
+    background: #FEF3C7; color: #C2410C;
+  }
+
+  /* =========================
+     THEME 6: Kitchen (親しみレシピ向け) ★ 推奨
+     ========================= */
+  .theme-card.kitchen {
+    background: linear-gradient(180deg, #FFFBEB 0%, #FFF 60%);
+    border: 3px solid #EA580C;
+    position: relative;
+  }
+  .theme-card.kitchen::before {
+    content: '★ 推奨 — レシピ共有向け';
+    position: absolute;
+    top: -14px;
+    left: 28px;
+    background: #EA580C;
+    color: white;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(234,88,12,0.3);
+  }
+  .theme-card.kitchen .theme-fit { background: #EA580C; color: white; }
+  .phone-mini.kitchen { background: #C2410C; }
+  .phone-mini.kitchen .phone-screen { background: #FFFBEB; }
+  .phone-mini.kitchen .app-header {
+    background: white;
+    color: #9A3412;
+    border-bottom: 2px solid #FED7AA;
+  }
+  .phone-mini.kitchen .logo {
+    background: linear-gradient(135deg, #F97316, #EA580C);
+    color: white;
+    border-radius: 50%;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    box-shadow: 0 6px 16px rgba(234,88,12,0.35);
+    position: relative;
+  }
+  .phone-mini.kitchen .logo::after {
+    content: '♥';
+    position: absolute;
+    bottom: -2px; right: -2px;
+    width: 18px; height: 18px;
+    background: #84CC16;
+    color: white;
+    border-radius: 50%;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #FFFBEB;
+  }
+  .phone-mini.kitchen h3 {
+    color: #7C2D12;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+  }
+  .phone-mini.kitchen .desc { color: #78716C; }
+  .phone-mini.kitchen .btn.primary {
+    background: #EA580C;
+    color: white;
+    border-radius: 50px;
+    box-shadow: 0 4px 12px rgba(234,88,12,0.3);
+  }
+  .phone-mini.kitchen .btn.secondary {
+    background: white;
+    color: #EA580C;
+    border: 2px solid #FED7AA;
+    border-radius: 50px;
+  }
+  .phone-mini.kitchen .recent-title {
+    color: #9A3412;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+  }
+  .phone-mini.kitchen .recent-item {
+    background: white;
+    border-radius: 14px;
+    color: #44403C;
+    box-shadow: 0 2px 6px rgba(234,88,12,0.08);
+  }
+  .phone-mini.kitchen .recent-thumb {
+    background: #FED7AA;
+    color: #EA580C;
+    border-radius: 10px;
+  }
+
+  /* Info box */
+  .info-box {
+    background: #F8FAFC;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 12px;
+  }
+  .info-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .info-row:last-child { margin-bottom: 0; }
+  .info-row .label {
+    font-weight: 700;
+    color: #475569;
+    min-width: 80px;
+  }
+  .info-row .value { color: #64748B; flex: 1; }
+
+  /* Compact palette display */
+  .palette-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #F8FAFC;
+    border-radius: 20px;
+    padding: 4px 10px 4px 4px;
+    font-size: 10px;
+    font-family: 'Inter', monospace;
+    color: #475569;
+  }
+  .chip-dot {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+
+  /* Summary bottom */
+  .summary-section {
+    background: white;
+    border-radius: 24px;
+    padding: 40px;
+    margin-top: 32px;
+  }
+  .summary-section h2 {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-size: 24px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .comparison-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
+    margin-top: 20px;
+  }
+  .comparison-table th {
+    background: #1E2761;
+    color: white;
+    padding: 12px;
+    text-align: left;
+    font-weight: 700;
+  }
+  .comparison-table th:first-child { border-top-left-radius: 12px; }
+  .comparison-table th:last-child { border-top-right-radius: 12px; }
+  .comparison-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #E2E8F0;
+    vertical-align: middle;
+  }
+  .comparison-table tr:nth-child(even) td { background: #F8FAFC; }
+  .comparison-table tr:last-child td:first-child { border-bottom-left-radius: 12px; }
+  .comparison-table tr:last-child td:last-child { border-bottom-right-radius: 12px; }
+  .theme-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+  }
+  .theme-dot {
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="title-block">
+    <h1>🎨 テーマバリエーション</h1>
+    <p>業種・雰囲気に合わせて選べる 6 つのデザイン案（🍳 Kitchen = ご要望に最適）</p>
+    <a href="index.html" class="nav-back">← 元のプレビューに戻る</a>
+  </div>
+
+  <div class="tabs">
+    <a href="index.html" class="tab" style="text-decoration:none;">Plan A の詳細</a>
+    <button class="tab active">テーマ比較（4種類）</button>
+  </div>
+
+  <div class="theme-grid">
+
+    <!-- Theme 1: Craft / Paper -->
+    <div class="theme-card craft">
+      <div class="theme-header">
+        <div class="title-area">
+          <span class="en">Theme 01</span>
+          <h3>Craft / Paper</h3>
+          <p>マニュアル = 紙のメタファー。温かみと信頼感。</p>
+        </div>
+        <span class="theme-fit">汎用・全業種</span>
+      </div>
+
+      <div class="palette-chips">
+        <span class="chip"><span class="chip-dot" style="background:#1C5D99"></span>#1C5D99</span>
+        <span class="chip"><span class="chip-dot" style="background:#E86A33"></span>#E86A33</span>
+        <span class="chip"><span class="chip-dot" style="background:#FAF8F1"></span>#FAF8F1</span>
+        <span class="chip"><span class="chip-dot" style="background:#1A1D2C"></span>#1A1D2C</span>
+      </div>
+
+      <div class="phone-wrap">
+        <div class="phone-mini craft">
+          <div class="phone-screen">
+            <div class="app-header">
+              <i data-lucide="file-text" style="width:16px;height:16px"></i>
+              <h4>マニュアル作成</h4>
+            </div>
+            <div class="body">
+              <div class="logo">M</div>
+              <h3>マニュアル作成</h3>
+              <div class="desc">撮って、書いて、共有する</div>
+              <div class="btn primary">
+                <i data-lucide="plus" style="width:13px;height:13px"></i>新規作成
+              </div>
+              <div class="btn secondary">
+                <i data-lucide="folder-open" style="width:13px;height:13px"></i>ファイルを開く
+              </div>
+              <div class="recent-title">最近のファイル</div>
+              <div class="recent-item">
+                <div class="recent-thumb"><i data-lucide="file-text" style="width:12px;height:12px"></i></div>
+                <div><div style="font-weight:700">客室清掃</div><div style="font-size:8px;color:#94A3B8">04/15</div></div>
+              </div>
+              <div class="recent-item">
+                <div class="recent-thumb"><i data-lucide="file-text" style="width:12px;height:12px"></i></div>
+                <div><div style="font-weight:700">衛生チェック</div><div style="font-size:8px;color:#94A3B8">04/14</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-row"><span class="label">印象</span><span class="value">温かみ・紙の質感・信頼感</span></div>
+        <div class="info-row"><span class="label">向く業種</span><span class="value">🍽 飲食 / 📚 教育 / 🛒 小売 など汎用的</span></div>
+        <div class="info-row"><span class="label">特徴</span><span class="value">クリーム背景＋オレンジの差し色でクラフト感。ブランド色を強く出せる</span></div>
+      </div>
+    </div>
+
+    <!-- Theme 2: Industrial -->
+    <div class="theme-card industrial">
+      <div class="theme-header">
+        <div class="title-area">
+          <span class="en">Theme 02</span>
+          <h3>Industrial</h3>
+          <p>現場・工場・安全第一。硬派で実用的。</p>
+        </div>
+        <span class="theme-fit">建設・製造</span>
+      </div>
+
+      <div class="palette-chips">
+        <span class="chip"><span class="chip-dot" style="background:#1E293B"></span>#1E293B</span>
+        <span class="chip"><span class="chip-dot" style="background:#EAB308"></span>#EAB308</span>
+        <span class="chip"><span class="chip-dot" style="background:#F1F5F9"></span>#F1F5F9</span>
+        <span class="chip"><span class="chip-dot" style="background:#FCD34D"></span>#FCD34D</span>
+      </div>
+
+      <div class="phone-wrap">
+        <div class="phone-mini industrial">
+          <div class="phone-screen">
+            <div class="app-header">
+              <i data-lucide="hard-hat" style="width:16px;height:16px;color:#FCD34D"></i>
+              <h4 style="color:white">SAFETY MANUAL</h4>
+            </div>
+            <div class="body">
+              <div class="logo"><span>M</span></div>
+              <h3>マニュアル作成</h3>
+              <div class="desc">現場で使える確実なツール</div>
+              <div class="btn primary">
+                <i data-lucide="plus" style="width:13px;height:13px"></i>新規作成
+              </div>
+              <div class="btn secondary">
+                <i data-lucide="folder-open" style="width:13px;height:13px"></i>ファイルを開く
+              </div>
+              <div class="recent-title">最近のファイル</div>
+              <div class="recent-item">
+                <div class="recent-thumb"><i data-lucide="hard-hat" style="width:12px;height:12px"></i></div>
+                <div><div style="font-weight:700">安全作業手順</div><div style="font-size:8px;color:#94A3B8">04/15</div></div>
+              </div>
+              <div class="recent-item">
+                <div class="recent-thumb"><i data-lucide="check-circle" style="width:12px;height:12px"></i></div>
+                <div><div style="font-weight:700">始業前点検</div><div style="font-size:8px;color:#94A3B8">04/14</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-row"><span class="label">印象</span><span class="value">堅牢・安全・プロフェッショナル</span></div>
+        <div class="info-row"><span class="label">向く業種</span><span class="value">🏗 建設 / 🏭 製造 / 重工業・インフラ</span></div>
+        <div class="info-row"><span class="label">特徴</span><span class="value">工事現場の安全色（黄）を採用。ヘルメット・チェック記号アイコンで現場感</span></div>
+      </div>
+    </div>
+
+    <!-- Theme 3: Fresh Mint -->
+    <div class="theme-card fresh">
+      <div class="theme-header">
+        <div class="title-area">
+          <span class="en">Theme 03</span>
+          <h3>Fresh Mint</h3>
+          <p>清潔・衛生・親しみやすさ。柔らかく優しい印象。</p>
+        </div>
+        <span class="theme-fit">医療・清掃・飲食</span>
+      </div>
+
+      <div class="palette-chips">
+        <span class="chip"><span class="chip-dot" style="background:#0D9488"></span>#0D9488</span>
+        <span class="chip"><span class="chip-dot" style="background:#14B8A6"></span>#14B8A6</span>
+        <span class="chip"><span class="chip-dot" style="background:#F0FDFA"></span>#F0FDFA</span>
+        <span class="chip"><span class="chip-dot" style="background:#99F6E4"></span>#99F6E4</span>
+      </div>
+
+      <div class="phone-wrap">
+        <div class="phone-mini fresh">
+          <div class="phone-screen">
+            <div class="app-header">
+              <i data-lucide="sparkles" style="width:16px;height:16px;color:#0D9488"></i>
+              <h4 style="color:#134E4A">マニュアル</h4>
+            </div>
+            <div class="body">
+              <div class="logo">M</div>
+              <h3>マニュアル作成</h3>
+              <div class="desc">清潔に、シンプルに</div>
+              <div class="btn primary">
+                <i data-lucide="plus" style="width:13px;height:13px"></i>新規作成
+              </div>
+              <div class="btn secondary">
+                <i data-lucide="folder-open" style="width:13px;height:13px"></i>ファイルを開く
+              </div>
+              <div class="recent-title">最近のファイル</div>
+              <div class="recent-item">
+                <div class="recent-thumb"><i data-lucide="sparkles" style="width:12px;height:12px"></i></div>
+                <div><div style="font-weight:700">客室清掃</div><div style="font-size:8px;color:#5F7D7A">04/15</div></div>
+              </div>
+              <div class="recent-item">
+                <div class="recent-thumb"><i data-lucide="heart-pulse" style="width:12px;height:12px"></i></div>
+                <div><div style="font-weight:700">衛生チェック</div><div style="font-size:8px;color:#5F7D7A">04/14</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-row"><span class="label">印象</span><span class="value">清潔・フレンドリー・安心感</span></div>
+        <div class="info-row"><span class="label">向く業種</span><span class="value">🏥 医療 / 🧹 清掃 / 🍽 飲食 / 🏨 宿泊</span></div>
+        <div class="info-row"><span class="label">特徴</span><span class="value">ティール系で清潔感を演出。角丸を多用した柔らかいUI。従業員教育に最適</span></div>
+      </div>
+    </div>
+
+    <!-- Theme 4: Premium Noir -->
+    <div class="theme-card premium">
+      <div class="theme-header">
+        <div class="title-area">
+          <span class="en">Theme 04</span>
+          <h3>Premium Noir</h3>
+          <p>高級・洗練・ブランド重視。ラグジュアリーな印象。</p>
+        </div>
+        <span class="theme-fit">高級宿泊・ブランド小売</span>
+      </div>
+
+      <div class="palette-chips">
+        <span class="chip"><span class="chip-dot" style="background:#0F172A"></span>#0F172A</span>
+        <span class="chip"><span class="chip-dot" style="background:#CA8A04"></span>#CA8A04</span>
+        <span class="chip"><span class="chip-dot" style="background:#1E293B"></span>#1E293B</span>
+        <span class="chip"><span class="chip-dot" style="background:#FAFAF9"></span>#FAFAF9</span>
+      </div>
+
+      <div class="phone-wrap">
+        <div class="phone-mini premium">
+          <div class="phone-screen">
+            <div class="app-header">
+              <i data-lucide="diamond" style="width:14px;height:14px;color:#CA8A04"></i>
+              <h4 style="color:white;font-family:'Playfair Display',serif;">MANUAL</h4>
+            </div>
+            <div class="body">
+              <div class="logo">M</div>
+              <h3>Manual Studio</h3>
+              <div class="desc" style="font-style:italic">Craft your excellence</div>
+              <div class="btn primary">
+                <i data-lucide="plus" style="width:13px;height:13px"></i>CREATE NEW
+              </div>
+              <div class="btn secondary">
+                <i data-lucide="folder-open" style="width:13px;height:13px"></i>OPEN FILE
+              </div>
+              <div class="recent-title">RECENT</div>
+              <div class="recent-item">
+                <div class="recent-thumb"><i data-lucide="diamond" style="width:12px;height:12px"></i></div>
+                <div><div style="font-weight:700">Suite Service</div><div style="font-size:8px;color:#94A3B8;font-family:'Inter'">04 / 15</div></div>
+              </div>
+              <div class="recent-item">
+                <div class="recent-thumb"><i data-lucide="diamond" style="width:12px;height:12px"></i></div>
+                <div><div style="font-weight:700">Fine Dining</div><div style="font-size:8px;color:#94A3B8;font-family:'Inter'">04 / 14</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-row"><span class="label">印象</span><span class="value">高級・洗練・ブランド</span></div>
+        <div class="info-row"><span class="label">向く業種</span><span class="value">🏨 高級宿泊 / 🛒 高級小売 / 💎 ジュエリー</span></div>
+        <div class="info-row"><span class="label">特徴</span><span class="value">ダークベース＋ゴールドアクセント。Playfair Displayフォントで格式を演出</span></div>
+      </div>
+    </div>
+
+    <!-- Theme 6: Kitchen (★ 推奨) -->
+    <div class="theme-card kitchen" style="grid-column: 1 / -1; margin-top: 16px;">
+      <div class="theme-header" style="margin-top: 8px;">
+        <div class="title-area">
+          <span class="en">Theme 06 — 🍳 NEW</span>
+          <h3 style="color: #9A3412;">Kitchen（親しみレシピ向け）</h3>
+          <p><strong>レシピ共有 × 親しみやすさ</strong> の最適解。カフェ・ベーカリー感の温かみ。</p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+        <div>
+          <div class="palette-chips">
+            <span class="chip"><span class="chip-dot" style="background:#EA580C"></span>#EA580C</span>
+            <span class="chip"><span class="chip-dot" style="background:#F97316"></span>#F97316</span>
+            <span class="chip"><span class="chip-dot" style="background:#FFFBEB"></span>#FFFBEB</span>
+            <span class="chip"><span class="chip-dot" style="background:#84CC16"></span>#84CC16</span>
+            <span class="chip"><span class="chip-dot" style="background:#44403C"></span>#44403C</span>
+          </div>
+
+          <div style="background: #FFF7ED; border: 2px solid #FED7AA; padding: 18px; border-radius: 14px; margin-top: 20px;">
+            <p style="font-weight:900;color:#9A3412;font-size:14px;margin-bottom:10px;font-family:'Zen Kaku Gothic New',sans-serif;">
+              🍳 なぜ Kitchen が最適なのか
+            </p>
+            <ul style="list-style:none;font-size:12px;color:#57534E;line-height:2;">
+              <li>🧡 <strong>オレンジ</strong> = 世界中の飲食ブランド定番（マクドナルド・ミスド・Dunkin'）</li>
+              <li>🌿 <strong>ライム緑のアクセント</strong> = 新鮮な野菜・ハーブを連想</li>
+              <li>🍞 <strong>クリーム背景</strong> = ベーカリー・カフェの温かい雰囲気</li>
+              <li>📖 <strong>丸ボタン・丸ロゴ</strong> = 親しみやすく、堅くない</li>
+              <li>🇯🇵 <strong>Zen Kaku Gothic</strong> = 日本語が美しく柔らかい</li>
+              <li>✨ 食材・料理の写真を載せた時に <strong>色が喧嘩しない</strong></li>
+            </ul>
+          </div>
+
+          <div class="info-box" style="margin-top: 16px;">
+            <div class="info-row"><span class="label">印象</span><span class="value">温かい・親しみ・美味しそう</span></div>
+            <div class="info-row"><span class="label">対応業態</span><span class="value">カフェ / 定食屋 / ベーカリー / 喫茶店 / 洋食店 / ファミレス / 居酒屋 / ラーメン店</span></div>
+            <div class="info-row"><span class="label">特徴</span><span class="value">レシピ写真を邪魔しない背景色。丸みを多用した柔らかいUI。誰でも触れる親しみ感</span></div>
+            <div class="info-row"><span class="label">避ける場面</span><span class="value">高級フレンチなど格式重視の店（そちらは Bistro がおすすめ）</span></div>
+          </div>
+        </div>
+
+        <div class="phone-wrap">
+          <div class="phone-mini kitchen">
+            <div class="phone-screen">
+              <div class="app-header">
+                <i data-lucide="utensils" style="width:16px;height:16px;color:#EA580C"></i>
+                <h4>レシピマニュアル</h4>
+              </div>
+              <div class="body">
+                <div class="logo">M</div>
+                <h3>レシピ共有</h3>
+                <div class="desc">美味しさを、チームで共有。</div>
+                <div class="btn primary">
+                  <i data-lucide="plus" style="width:13px;height:13px"></i>新しいレシピ
+                </div>
+                <div class="btn secondary">
+                  <i data-lucide="folder-open" style="width:13px;height:13px"></i>レシピ一覧
+                </div>
+                <div class="recent-title">最近のレシピ</div>
+                <div class="recent-item">
+                  <div class="recent-thumb"><i data-lucide="soup" style="width:12px;height:12px"></i></div>
+                  <div><div style="font-weight:700">トマトクリームパスタ</div><div style="font-size:8px;color:#A8A29E">04/15</div></div>
+                </div>
+                <div class="recent-item">
+                  <div class="recent-thumb"><i data-lucide="cake" style="width:12px;height:12px"></i></div>
+                  <div><div style="font-weight:700">シフォンケーキ</div><div style="font-size:8px;color:#A8A29E">04/14</div></div>
+                </div>
+                <div class="recent-item">
+                  <div class="recent-thumb"><i data-lucide="coffee" style="width:12px;height:12px"></i></div>
+                  <div><div style="font-weight:700">本日のコーヒー</div><div style="font-size:8px;color:#A8A29E">04/13</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme 5: Bistro -->
+    <div class="theme-card bistro" style="grid-column: 1 / -1;">
+      <div class="theme-header">
+        <div class="title-area">
+          <span class="en">Theme 05 — NEW 🍽</span>
+          <h3>Bistro（飲食特化）</h3>
+          <p>食欲を刺激するウォームカラー + レシピカードの質感。<strong>ご提案の最有力候補</strong></p>
+        </div>
+        <span class="theme-fit" style="margin-right: 120px;">🍽 飲食店専用設計</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center;">
+        <div>
+          <div class="palette-chips">
+            <span class="chip"><span class="chip-dot" style="background:#7C2D12"></span>#7C2D12</span>
+            <span class="chip"><span class="chip-dot" style="background:#C2410C"></span>#C2410C</span>
+            <span class="chip"><span class="chip-dot" style="background:#D97706"></span>#D97706</span>
+            <span class="chip"><span class="chip-dot" style="background:#FEF7E0"></span>#FEF7E0</span>
+            <span class="chip"><span class="chip-dot" style="background:#292524"></span>#292524</span>
+          </div>
+
+          <div style="margin-top: 20px;">
+            <div style="background:#FEF3C7;border-left:4px solid #C2410C;padding:14px;border-radius:8px;">
+              <p style="font-weight:700;color:#7C2D12;font-size:13px;margin-bottom:6px;">🍽 飲食店にハマる理由</p>
+              <ul style="list-style:none;font-size:12px;color:#57534E;line-height:1.8;">
+                <li>✓ <strong>バーガンディ・テラコッタ</strong>でワイン・食材の温かさ</li>
+                <li>✓ <strong>マスタード・アンバー</strong>で食欲増進（マクドナルド効果）</li>
+                <li>✓ <strong>クリーム背景</strong>でカフェメニュー・レシピ感</li>
+                <li>✓ <strong>Playfair Display</strong>セリフ体で老舗・こだわり感</li>
+                <li>✓ 照明を落とした店内でも読みやすい中間明度</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="info-box" style="margin-top: 16px;">
+            <div class="info-row"><span class="label">印象</span><span class="value">温かみ・食欲・こだわり</span></div>
+            <div class="info-row"><span class="label">対応業態</span><span class="value">レストラン / カフェ / 居酒屋 / ビストロ / ラーメン店 / ファミレス</span></div>
+            <div class="info-row"><span class="label">特徴</span><span class="value">世界の飲食ブランドの定番色を採用。HACCP マニュアルでも堅苦しくない</span></div>
+          </div>
+        </div>
+
+        <div class="phone-wrap">
+          <div class="phone-mini bistro">
+            <div class="phone-screen">
+              <div class="app-header">
+                <i data-lucide="chef-hat" style="width:16px;height:16px;color:#D97706"></i>
+                <h4>Recipe &amp; Manual</h4>
+              </div>
+              <div class="body">
+                <div class="logo">M</div>
+                <h3>Bistro Manual</h3>
+                <div class="desc">調理と接客、すべてを1冊に</div>
+                <div class="btn primary">
+                  <i data-lucide="plus" style="width:13px;height:13px"></i>新規作成
+                </div>
+                <div class="btn secondary">
+                  <i data-lucide="folder-open" style="width:13px;height:13px"></i>ファイルを開く
+                </div>
+                <div class="recent-title">最近のファイル</div>
+                <div class="recent-item">
+                  <div class="recent-thumb"><i data-lucide="utensils" style="width:12px;height:12px"></i></div>
+                  <div><div style="font-weight:700">本日のレシピ</div><div style="font-size:8px;color:#78716C">04/15</div></div>
+                </div>
+                <div class="recent-item">
+                  <div class="recent-thumb"><i data-lucide="shield-check" style="width:12px;height:12px"></i></div>
+                  <div><div style="font-weight:700">HACCP チェック</div><div style="font-size:8px;color:#78716C">04/14</div></div>
+                </div>
+                <div class="recent-item">
+                  <div class="recent-thumb"><i data-lucide="coffee" style="width:12px;height:12px"></i></div>
+                  <div><div style="font-weight:700">接客マニュアル</div><div style="font-size:8px;color:#78716C">04/13</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Comparison table -->
+  <div class="summary-section">
+    <h2>テーマ一覧比較</h2>
+    <p style="text-align: center; color: #64748B; font-size: 13px; margin-bottom: 16px;">
+      業種・ターゲット層に応じて選択可能。複数テーマを用意することも可能（設定で切替）。
+    </p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>テーマ</th>
+          <th>主要色</th>
+          <th>向く業種</th>
+          <th>印象</th>
+          <th>特徴</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="theme-label">
+              <div class="theme-dot" style="background:linear-gradient(135deg,#1C5D99,#E86A33);"></div>
+              Craft / Paper
+            </div>
+          </td>
+          <td style="font-family:'Inter',monospace;font-size:10px;">#1C5D99<br>#E86A33</td>
+          <td>汎用・全業種</td>
+          <td>温かみ・信頼感</td>
+          <td>紙の質感でバランス型</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="theme-label">
+              <div class="theme-dot" style="background:linear-gradient(135deg,#1E293B,#EAB308);"></div>
+              Industrial
+            </div>
+          </td>
+          <td style="font-family:'Inter',monospace;font-size:10px;">#1E293B<br>#EAB308</td>
+          <td>建設・製造</td>
+          <td>堅牢・プロ</td>
+          <td>安全色の黄＋黒の硬派感</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="theme-label">
+              <div class="theme-dot" style="background:linear-gradient(135deg,#0D9488,#99F6E4);"></div>
+              Fresh Mint
+            </div>
+          </td>
+          <td style="font-family:'Inter',monospace;font-size:10px;">#0D9488<br>#14B8A6</td>
+          <td>医療・清掃・飲食</td>
+          <td>清潔・親しみ</td>
+          <td>ティール系の柔らかさ</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="theme-label">
+              <div class="theme-dot" style="background:linear-gradient(135deg,#0F172A,#CA8A04);"></div>
+              Premium Noir
+            </div>
+          </td>
+          <td style="font-family:'Inter',monospace;font-size:10px;">#0F172A<br>#CA8A04</td>
+          <td>高級宿泊・ブランド小売</td>
+          <td>高級・洗練</td>
+          <td>黒×ゴールドの格式</td>
+        </tr>
+        <tr>
+          <td>
+            <div class="theme-label">
+              <div class="theme-dot" style="background:linear-gradient(135deg,#7C2D12,#D97706);"></div>
+              🍽 Bistro
+            </div>
+          </td>
+          <td style="font-family:'Inter',monospace;font-size:10px;">#7C2D12<br>#C2410C<br>#D97706</td>
+          <td>高級飲食・ビストロ</td>
+          <td>温かみ・格式</td>
+          <td>飲食向け（大人・格式寄り）</td>
+        </tr>
+        <tr style="background: #FFF7ED !important;">
+          <td>
+            <div class="theme-label">
+              <div class="theme-dot" style="background:linear-gradient(135deg,#EA580C,#84CC16);"></div>
+              🍳 <strong>Kitchen</strong>
+            </div>
+          </td>
+          <td style="font-family:'Inter',monospace;font-size:10px;">#EA580C<br>#F97316<br>#84CC16</td>
+          <td><strong>🍳 カフェ・定食・ベーカリー</strong></td>
+          <td><strong>親しみ・美味しそう</strong></td>
+          <td><strong>レシピ共有 ★ご要望の最適解</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="background:#F0F7FF;border-left:4px solid #1C5D99;padding:16px;border-radius:8px;margin-top:24px;">
+      <p style="font-size:13px;color:#0F172A;font-weight:700;margin-bottom:4px;">💡 マルチテーマ対応も可能</p>
+      <p style="font-size:12px;color:#475569;">
+        設定画面でユーザーが好みのテーマを選べる形で実装することもできます（追加工数: +0.3人月程度）。
+        業種ごとのデフォルトテーマ自動選択も実装可能です。
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  lucide.createIcons();
+</script>
+
+</body>
+</html>
