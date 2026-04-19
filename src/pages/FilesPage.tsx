@@ -1,7 +1,9 @@
 import { useState, useMemo, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Plus, Upload } from 'lucide-react'
 import { useDatabase } from '../hooks/useDatabase'
 import { showToast } from '../components/common/Toast'
+import EmptyState from '../components/common/EmptyState'
 import { exportManualAsJson, parseManualJsonFile } from '../lib/manualIO'
 
 type SortKey = 'updatedAt' | 'createdAt' | 'title'
@@ -146,13 +148,38 @@ export default function FilesPage() {
       {loading ? (
         <div className="text-center py-12 text-text-muted">読み込み中...</div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-text-muted">
-          <p className="text-4xl mb-3">📭</p>
-          <p className="text-[14px]">{search ? '検索結果がありません' : '保存されたファイルがありません'}</p>
-          {!search && (
-            <p className="text-[11px] mt-2">「📥 読込」からJSONファイルを取り込むこともできます</p>
-          )}
-        </div>
+        search ? (
+          <EmptyState
+            variant="search"
+            title="検索結果がありません"
+            description={`「${search}」に一致するマニュアルは見つかりませんでした。`}
+          >
+            <button
+              onClick={() => setSearch('')}
+              className="bg-white dark:bg-dark-card text-primary border-2 border-border dark:border-dark-border px-4 py-2 rounded-full text-[13px] font-bold cursor-pointer tap-feedback hover:border-primary"
+            >
+              検索をクリア
+            </button>
+          </EmptyState>
+        ) : (
+          <EmptyState
+            title="最初のマニュアルを作りましょう"
+            description="テンプレートを選んで、3分でマニュアル完成。"
+          >
+            <button
+              onClick={() => navigate('/industry')}
+              className="bg-primary text-white px-5 py-2.5 rounded-full text-[13px] font-bold cursor-pointer flex items-center gap-1.5 tap-feedback hover:bg-primary-hover shadow-[0_4px_12px_rgba(234,88,12,0.25)]"
+            >
+              <Plus size={14} strokeWidth={2.5} /> 新規作成
+            </button>
+            <button
+              onClick={handleImportClick}
+              className="bg-white dark:bg-dark-card text-primary border-2 border-border dark:border-dark-border px-5 py-2.5 rounded-full text-[13px] font-bold cursor-pointer flex items-center gap-1.5 tap-feedback hover:border-primary"
+            >
+              <Upload size={14} strokeWidth={2.5} /> JSONを読込
+            </button>
+          </EmptyState>
+        )
       ) : (
         <div className="flex flex-col gap-2">
           {filtered.map((m) => {

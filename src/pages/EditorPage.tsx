@@ -350,7 +350,7 @@ export default function EditorPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-60px)]">
+    <div className="flex flex-col h-[calc(100dvh-60px)] pb-24">
       {/* Hidden file inputs */}
       <input
         ref={fileInputRef}
